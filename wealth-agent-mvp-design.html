@@ -1,0 +1,2029 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Wealth Agent MVP</title>
+<style>
+  :root {
+    --bg: #f7f6f3; --surface: #ffffff; --surface-2: #f0eee9; --panel: #efebe4;
+    --ink: #1d1d1f; --muted: #6b6b70; --line: #d6d3cc;
+    --accent: #4f46e5; --accent-soft: #eef0ff;
+    --prim: #d9480f; --prim-soft: #fdebe1;
+    --alert: #c2410c; --alert-soft: #fff1e8;
+    --ok: #0f766e; --ok-soft: #e6f5f2;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #141416; --surface: #1c1c20; --surface-2: #25252a; --panel: #222226;
+      --ink: #ececef; --muted: #9a9aa3; --line: #3a3a42;
+      --accent: #8b85ff; --accent-soft: #23214a;
+      --prim: #ff8a4c; --prim-soft: #3a2214;
+      --alert: #fb923c; --alert-soft: #3a2416;
+      --ok: #2dd4bf; --ok-soft: #12312d;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #141416; --surface: #1c1c20; --surface-2: #25252a; --panel: #222226;
+    --ink: #ececef; --muted: #9a9aa3; --line: #3a3a42;
+    --accent: #8b85ff; --accent-soft: #23214a;
+    --prim: #ff8a4c; --prim-soft: #3a2214;
+    --alert: #fb923c; --alert-soft: #3a2416;
+    --ok: #2dd4bf; --ok-soft: #12312d;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.6 -apple-system, BlinkMacSystemFont, "Segoe UI", Inter, Roboto, sans-serif; }
+  main { max-width: 1120px; margin: 0 auto; padding: 56px 16px 80px; }
+  header { max-width: 800px; margin-bottom: 32px; }
+  .eyebrow { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--prim); font-weight: 600; }
+  h1 { font-size: clamp(30px, 5vw, 42px); line-height: 1.15; margin: 8px 0 16px; letter-spacing: -.02em; }
+  h2 { font-size: 24px; margin: 72px 0 8px; letter-spacing: -.01em; display: flex; gap: 10px; align-items: baseline; }
+  h2 .k { font-size: 13px; font-weight: 700; color: var(--prim); letter-spacing: .06em; text-transform: uppercase; }
+  h3 { font-size: 18px; margin: 36px 0 6px; }
+  h4 { font-size: 15px; margin: 0 0 6px; }
+  .lede { font-size: 18px; color: var(--muted); margin: 0; }
+  p.body, .section-intro { color: var(--muted); max-width: 800px; margin: 0 0 16px; }
+  p.body b, .section-intro b, li b { color: var(--ink); }
+  .grid { display: grid; gap: 14px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); margin-bottom: 16px; }
+  .grid.two { grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); }
+  .card { background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 16px 20px; }
+  .card p, .card li { color: var(--muted); font-size: 15px; }
+  .card p { margin: 0; }
+  .card ul, .card ol { margin: 4px 0 0; padding-left: 18px; }
+  .card li { margin-bottom: 4px; }
+  .card .num { font-size: 12px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--prim); display: block; margin-bottom: 4px; }
+  figure { margin: 0 0 16px; background: var(--surface); border: 1px solid var(--line); border-radius: 14px; padding: 20px; }
+  figcaption { font-size: 14px; color: var(--muted); margin-top: 12px; }
+  .scroll { overflow-x: auto; }
+  .scroll svg { display: block; width: 100%; min-width: 820px; height: auto; }
+  a { color: var(--accent); }
+  ol.steps { color: var(--muted); padding-left: 22px; max-width: 800px; margin: 0 0 16px; }
+  ol.steps li { margin-bottom: 6px; }
+
+  /* SVG */
+  svg text { font-family: inherit; fill: var(--ink); }
+  .pn { fill: var(--panel); }
+  .b { fill: var(--surface); stroke: var(--line); stroke-width: 1.5; }
+  .b2 { fill: var(--surface-2); stroke: var(--line); stroke-width: 1.2; }
+  .ba { fill: var(--accent-soft); stroke: var(--accent); stroke-width: 1.4; }
+  .bh { fill: var(--prim-soft); stroke: var(--prim); stroke-width: 2.5; }
+  .brun { fill: var(--surface); stroke: var(--ink); stroke-width: 2; }
+  .bn { fill: var(--surface); stroke: var(--line); stroke-width: 1; }
+  .dash { fill: none; stroke: var(--line); stroke-width: 1.5; stroke-dasharray: 6 5; }
+  .faded { opacity: .45; }
+  .t { font-size: 15px; font-weight: 600; }
+  .th { font-size: 17px; font-weight: 700; }
+  .tp { font-size: 17px; font-weight: 700; fill: var(--prim); }
+  .ts { font-size: 13px; fill: var(--muted); }
+  .tx { font-size: 12px; fill: var(--muted); }
+  .tl { font-size: 11px; font-weight: 700; letter-spacing: .08em; fill: var(--muted); }
+  .ta { fill: var(--accent); }
+  .tpc { fill: var(--prim); }
+  .ar { fill: none; stroke: var(--ink); stroke-width: 1.4; }
+  .arm { fill: none; stroke: var(--muted); stroke-width: 1.3; }
+  .arp { fill: none; stroke: var(--prim); stroke-width: 2; }
+  .ard { fill: none; stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 5 4; }
+  .life { stroke: var(--line); stroke-width: 1.2; stroke-dasharray: 4 4; }
+  .hd { fill: var(--ink); }
+  .hdm { fill: var(--muted); }
+  .hdp { fill: var(--prim); }
+  .user { fill: var(--ink); }
+  .pill { fill: var(--surface); stroke: var(--accent); stroke-width: 1; }
+
+  table { width: 100%; border-collapse: collapse; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; overflow: hidden; font-size: 14.5px; }
+  th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { background: var(--surface-2); font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); white-space: nowrap; }
+  td.m { color: var(--muted); }
+  tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; margin-bottom: 16px; }
+  .tag { display: inline-block; font-size: 11.5px; font-weight: 600; padding: 1px 8px; border-radius: 999px; white-space: nowrap; }
+  .tag.p { background: var(--prim-soft); color: var(--prim); }
+  .tag.a { background: var(--accent-soft); color: var(--accent); }
+  .tag.al { background: var(--alert-soft); color: var(--alert); }
+  .tag.ok { background: var(--ok-soft); color: var(--ok); }
+  .tag.n { background: var(--surface-2); color: var(--muted); }
+  .note { border-left: 3px solid var(--prim); padding: 2px 0 2px 14px; color: var(--muted); font-size: 15px; max-width: 800px; margin: 16px 0; }
+  .note b { color: var(--ink); }
+  pre { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px; padding: 14px 16px; overflow-x: auto; font: 13px/1.55 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; color: var(--ink); margin: 0 0 16px; }
+  pre .c { color: var(--muted); }
+  code { font: 13px ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--surface-2); padding: 1px 5px; border-radius: 5px; }
+  .toc { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 0 8px; padding: 0; list-style: none; }
+  .toc a { display: inline-block; font-size: 13.5px; text-decoration: none; color: var(--ink); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 4px 12px; }
+  .toc a:hover { border-color: var(--prim); color: var(--prim); }
+
+  /* classes used by the concept diagrams */
+  .bal { fill: var(--alert-soft); stroke: var(--alert); stroke-width: 1.5; }
+  .bok { fill: var(--ok-soft); stroke: var(--ok); stroke-width: 1.5; }
+  .tal { fill: var(--alert); }
+  .tok { fill: var(--ok); }
+  .ar-a { fill: none; stroke: var(--accent); stroke-width: 1.8; }
+  .ar-al { fill: none; stroke: var(--alert); stroke-width: 1.8; }
+  .ar-d { fill: none; stroke: var(--muted); stroke-width: 1.4; stroke-dasharray: 5 4; }
+  .hd-a { fill: var(--accent); }
+  .hd-al { fill: var(--alert); }
+  .card h3 { font-size: 16px; margin: 0 0 6px; }
+  ul.qs { margin: 0; padding-left: 20px; color: var(--muted); }
+  ul.qs li { margin-bottom: 8px; }
+  ul.qs b { color: var(--ink); }
+  .part { margin: 104px 0 0; padding-top: 28px; border-top: 1px solid var(--line); }
+  .part .pk { font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--prim); }
+  .part h2.ph { font-size: clamp(26px, 4vw, 32px); margin: 4px 0 8px; display: block; }
+  .part p { color: var(--muted); max-width: 800px; margin: 0; }
+  .part + section h2 { margin-top: 40px; }
+  .docmap { display: grid; gap: 12px; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); margin: 8px 0 20px; }
+  .docmap a { display: block; text-decoration: none; background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 14px 18px; color: var(--ink); }
+  .docmap a:hover { border-color: var(--prim); }
+  .docmap .pk { font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--prim); }
+  .docmap b { display: block; font-size: 16px; margin: 2px 0 4px; }
+  .docmap span.d { font-size: 14px; color: var(--muted); }
+
+  /* signal-detector doc additions */
+  .t14 { font-size: 14px; font-weight: 600; }
+  .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; fill: var(--ink); }
+  .monom { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 12px; fill: var(--muted); }
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 16px; }
+  .meta .tag { font-size: 12px; padding: 2px 10px; }
+  h4.sub { font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 28px 0 8px; }
+  .zline { fill: none; stroke: var(--accent); stroke-width: 2.2; }
+  .thr { stroke: var(--muted); stroke-width: 1.2; stroke-dasharray: 6 5; }
+  .thr-p { stroke: var(--prim); stroke-width: 1.4; stroke-dasharray: 6 5; }
+  .axis { stroke: var(--line); stroke-width: 1.4; }
+  .dot-p { fill: var(--prim); }
+  .dot-ok { fill: var(--surface); stroke: var(--ok); stroke-width: 2.4; }
+  .lead { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 3 3; }
+  section.detector { margin-top: 24px; }
+</style>
+</head>
+<body>
+<main>
+
+<header>
+  <div class="eyebrow">Design document · MVP</div>
+  <h1>AI-Native Wealth Agent: MVP Design</h1>
+  <p class="lede">The first version of the wealth agent: one dedicated agent per client, for portfolios of listed equities. It onboards itself, listens to seven signal detectors, tells the client what matters, answers questions, and proposes trades that the client approves.</p>
+  <p class="note">This document takes what the MVP needs from the <a href="wealth-agent-overall-design.html">overall design</a> and the <a href="wealth-agent-signal-detectors.html">signal detectors design</a>, cuts it to the equity-only scope, and marks what waits for later. Table names, limits and thresholds are proposed starting values.</p>
+  <div class="docmap">
+    <a href="#part-scope"><span class="pk">Part 1</span><b>Scope</b><span class="d">What the MVP proves, what's in and out, success criteria</span></a>
+    <a href="#part-how"><span class="pk">Part 2</span><b>How it works</b><span class="d">Lifecycle, event pipeline, MVP architecture</span></a>
+    <a href="#part-detectors"><span class="pk">Part 3</span><b>Signal detectors</b><span class="d">The common contract, onboarding, and the 7 + F detectors</span></a>
+    <a href="#part-runtime"><span class="pk">Part 4</span><b>Runtime</b><span class="d">Inbox, worker, agent loop, tools, memory, permissions, outbox</span></a>
+    <a href="#part-ops"><span class="pk">Part 5</span><b>Operations and next</b><span class="d">Failures, cost, evals, phase 2, open questions</span></a>
+  </div>
+</header>
+
+
+<div class="part" id="part-scope">
+  <div class="pk">Part 1</div>
+  <h2 class="ph">Scope</h2>
+  <p>What the MVP has to prove, and where its boundary is.</p>
+</div>
+
+<section id="goals">
+  <h2>What the MVP must prove</h2>
+  <div class="grid">
+    <div class="card"><span class="num">01 · Zero-instruction</span><h3>Self-onboarding</h3><p>The agent works out what to watch from the client's portfolio and history. Nobody configures it.</p></div>
+    <div class="card"><span class="num">02 · Personal</span><h3>One agent per client</h3><p>Each client has a dedicated agent with its own memory, inbox and outbox.</p></div>
+    <div class="card"><span class="num">03 · Selective</span><h3>Subscribe, don't firehose</h3><p>It listens only to signals about the client's stocks and markets, and stays silent when nothing matters.</p></div>
+    <div class="card"><span class="num">04 · Proactive + on demand</span><h3>Speaks first, also answers</h3><p>It alerts and reports without being asked, and answers questions at any time.</p></div>
+    <div class="card"><span class="num">05 · Safe</span><h3>Acts only with approval</h3><p>It can propose orders, but nothing executes until the client approves the exact order.</p></div>
+  </div>
+</section>
+
+<section id="scope">
+  <h2>In scope and out of scope</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Area</th><th>In the MVP</th><th>Later</th></tr></thead>
+    <tbody>
+      <tr><td><b>Portfolios</b></td><td class="m">Listed stocks, equity ETFs, cash</td><td class="m">Bonds, mutual funds, structured products, loans</td></tr>
+      <tr><td><b>Markets</b></td><td class="m">Proposed: Hong Kong and US listings (open question)</td><td class="m">Other exchanges</td></tr>
+      <tr><td><b>Signal detectors</b></td><td class="m">A1 price move · A6 market regime · B1 earnings · B3 corporate actions · C1 news · D1 concentration · D6 account activity · F feed health</td><td class="m">The other 19 detectors (<a href="#phase2">phase 2</a>)</td></tr>
+      <tr><td><b>Client experience</b></td><td class="m">Urgent alerts, insight reports, a weekly digest, consultation (chat), approval cards</td><td class="m">—</td></tr>
+      <tr><td><b>Agent actions</b></td><td class="m"><code>draft_order</code>; <code>place_order</code> and <code>cancel_order</code>, approved by the client</td><td class="m">Rebalancing, cash moves, product recommendations, corporate-action elections</td></tr>
+      <tr><td><b>Channels</b></td><td class="m">Push, in-app chat, email</td><td class="m">—</td></tr>
+      <tr><td><b>Runtime</b></td><td class="m">Our own agent loop on the Messages API</td><td class="m">Possible move to Managed Agents after a spike</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="assumptions">
+  <h2>Assumptions that would change the scope</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>If MVP portfolios…</th><th>Then add</th></tr></thead>
+    <tbody>
+      <tr><td>…have margin or Lombard loans against the stocks</td><td class="m"><b>D3 Leverage &amp; margin</b>, as a must-have. A missed margin call is the worst failure.</td></tr>
+      <tr><td>…hold stocks in a currency other than the reporting currency</td><td class="m"><b>A3 FX</b></td></tr>
+      <tr><td>…hold mutual funds, not just ETFs</td><td class="m"><b>A7 Fund &amp; ETF</b>, at least the gate and suspension kinds</td></tr>
+      <tr><td>…belong to clients with exclusions ("no tobacco")</td><td class="m"><b>C4 ESG</b>, <code>esg.exclusion_breach</code> only</td></tr>
+      <tr><td>…are advise-only (the agent never proposes orders)</td><td class="m">D6 can move to phase 2</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="success">
+  <h2>Success criteria</h2>
+  <p class="section-intro">Targets are proposals for the team to agree before the pilot.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Criterion</th><th>Proposed target</th><th>How it's measured</th></tr></thead>
+    <tbody>
+      <tr><td><b>Approval safety</b></td><td class="m">Zero side effects without an approved, unexpired deferral</td><td class="m">Eval suite plus a daily audit-log check</td></tr>
+      <tr><td><b>Injection resistance</b></td><td class="m">Zero actions triggered by crafted news items</td><td class="m">Red-team set of injected headlines and articles</td></tr>
+      <tr><td><b>Relevance</b></td><td class="m">At least 80% of alerts and reports judged relevant</td><td class="m">Advisors review a weekly sample</td></tr>
+      <tr><td><b>Volume</b></td><td class="m">Within the agreed messages per client per week (open question)</td><td class="m">Outbox metrics by kind; a replayed month of events</td></tr>
+      <tr><td><b>Breaking events</b></td><td class="m">Exposed clients alerted, unexposed clients silent; signal → alert p95 ≤ 2 min</td><td class="m">Replay of a past sell-off</td></tr>
+      <tr><td><b>Consultation</b></td><td class="m">Answer delivered p95 ≤ 30 s</td><td class="m">Run metrics for conversation sessions</td></tr>
+      <tr><td><b>Cost</b></td><td class="m">Within the per-client monthly budget (to be set)</td><td class="m">Tokens and cost per run in the audit log</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+
+<div class="part" id="part-how">
+  <div class="pk">Part 2</div>
+  <h2 class="ph">How it works</h2>
+  <p>The agent is asleep almost all the time. It wakes for a short run when an event arrives, works inside a session, saves what it learned, and goes back to sleep.</p>
+</div>
+
+<section id="lifecycle">
+  <h2>From onboarding to action</h2>
+  <ol class="steps">
+    <li><b>Understand:</b> the client's first event is <code>onboarding</code>. That run reads the portfolio, profile and history and writes <code>notes/</code>.</li>
+    <li><b>Listen:</b> the same run sets the default subscriptions (<a href="#onboarding">below</a>) and the weekly digest schedule. It starts on the quietest delivery settings.</li>
+    <li><b>Act:</b> when a signal arrives, the agent relates it to the holdings, researches, analyzes, and decides: say nothing, add a finding to the digest, send a report or alert, set a follow-up, or propose an order.</li>
+    <li><b>Refresh:</b> new holdings, client questions and the nightly dreaming job keep memory and subscriptions current.</li>
+  </ol>
+</section>
+
+<section id="pipeline">
+  <h2>What happens when a signal arrives</h2>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1180 280" role="img" aria-label="Signal pipeline: a signal arrives, relate to portfolio (irrelevant events are ignored), research, analyze, then decide severity: urgent alert, insight report, or digest.">
+      <defs>
+        <marker id="h2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+        <marker id="h2al" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd-al"/></marker>
+      </defs>
+
+      <rect x="20" y="60" width="180" height="120" rx="12" class="b2"/>
+      <text x="36" y="88" class="tl">STEP 1</text>
+      <text x="36" y="114" class="t">Signal arrives</text>
+      <text x="36" y="138" class="ts">from a detector, on a</text>
+      <text x="36" y="158" class="ts">subscribed topic</text>
+
+      <path d="M200,120 L228,120" class="ar" marker-end="url(#h2)"/>
+
+      <rect x="230" y="60" width="180" height="120" rx="12" class="ba"/>
+      <text x="246" y="88" class="tl">STEP 2</text>
+      <text x="246" y="114" class="t ta">Relate</text>
+      <text x="246" y="138" class="ts">Which holdings are</text>
+      <text x="246" y="158" class="ts">exposed, and how much?</text>
+
+      <path d="M410,120 L438,120" class="ar" marker-end="url(#h2)"/>
+
+      <rect x="440" y="60" width="180" height="120" rx="12" class="ba"/>
+      <text x="456" y="88" class="tl">STEP 3</text>
+      <text x="456" y="114" class="t ta">Research</text>
+      <text x="456" y="138" class="ts">Pull related data,</text>
+      <text x="456" y="158" class="ts">history and context</text>
+
+      <path d="M620,120 L648,120" class="ar" marker-end="url(#h2)"/>
+
+      <rect x="650" y="60" width="180" height="120" rx="12" class="ba"/>
+      <text x="666" y="88" class="tl">STEP 4</text>
+      <text x="666" y="114" class="t ta">Analyze</text>
+      <text x="666" y="138" class="ts">Impact, scenarios,</text>
+      <text x="666" y="158" class="ts">possible actions</text>
+
+      <path d="M830,120 L842,120" class="ar" marker-end="url(#h2)"/>
+
+      <!-- diamond -->
+      <path d="M900,62 L958,120 L900,178 L842,120 Z" class="b"/>
+      <text x="900" y="125" class="t" text-anchor="middle">Severity?</text>
+
+      <path d="M958,120 C985,120 985,52 1008,52" class="ar-al" marker-end="url(#h2al)"/>
+      <path d="M958,120 L1008,120" class="ar" marker-end="url(#h2)"/>
+      <path d="M958,120 C985,120 985,188 1008,188" class="ar" marker-end="url(#h2)"/>
+
+      <rect x="1010" y="24" width="160" height="56" rx="10" class="bal"/>
+      <text x="1024" y="48" class="t tal">Urgent alert</text>
+      <text x="1024" y="68" class="ts">push now</text>
+      <rect x="1010" y="92" width="160" height="56" rx="10" class="bok"/>
+      <text x="1024" y="116" class="t tok">Insight report</text>
+      <text x="1024" y="136" class="ts">contextual briefing</text>
+      <rect x="1010" y="160" width="160" height="56" rx="10" class="b"/>
+      <text x="1024" y="184" class="t">Digest / log</text>
+      <text x="1024" y="204" class="ts">batched summary</text>
+
+      <!-- drop -->
+      <path d="M320,180 L320,226" class="ar-d" marker-end="url(#h2)"/>
+      <text x="334" y="250" class="ts">not relevant → ignored silently</text>
+    </svg>
+    </div>
+    <figcaption>Most signals stop at step 2. Only signals that affect the portfolio go on to research and analysis.</figcaption>
+  </figure>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Mode</th><th>Who starts it</th><th>Trigger</th><th>What the client gets</th><th>Runtime path</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag ok">Insight report</span></td><td>Agent</td><td class="m">A relevant signal</td><td class="m">What happened, how it affects their holdings, and the options</td><td class="m"><code>send_message</code> (report) → outbox → delivered in active hours</td></tr>
+      <tr><td><span class="tag al">Urgent alert</span></td><td>Agent</td><td class="m">A high-severity or unexpected signal</td><td class="m">A short notice with the key exposure and next steps</td><td class="m"><code>send_message</code> (alert) → outbox → delivered at once, at most 3 a day</td></tr>
+      <tr><td><span class="tag n">Weekly digest</span></td><td>Timer</td><td class="m">Monday 08:00 in the client's time zone</td><td class="m">Findings collected during the week, and the week ahead (results dates)</td><td class="m">Scheduled timer → run → <code>send_message</code> (digest)</td></tr>
+      <tr><td><span class="tag a">Consultation</span></td><td>Client</td><td class="m">Any question, at any time</td><td class="m">An answer grounded in their portfolio, history and current markets</td><td class="m">Client message → resumes the conversation session → reply</td></tr>
+      <tr><td><span class="tag al">Approval request</span></td><td>Agent</td><td class="m">The agent proposes an order</td><td class="m">A card to approve or reject, showing the exact order</td><td class="m">Deferred tool call → approval card → the answer returns as an event</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="arch">
+  <h2>MVP architecture</h2>
+  <p class="section-intro">The overall design's three columns, limited to MVP components. Nothing calls the agent directly: events go in through the inbox, messages go out through the outbox, and orders go out only through the permission gate and the credential proxy.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1180 640" role="img" aria-label="MVP architecture in three columns. What starts a run: market data, news and earnings, custodian and portfolio system feed seven signal detectors plus feed health. Shared detectors go through the subscription filter; client detectors D1 and D6 go straight to the ingest handler and event inbox, which also receives timers and the client app. What a run works with: a worker holding a per-client lease starts or resumes a run, which contains the context builder, the Claude agent loop, the tool router and the permission gate, and uses memory and the session store; nightly jobs run dreaming and the subscription reconciler. The tool router updates subscriptions. What leaves a run: messages go to the outbox and dispatcher, then to the client; approved orders go through the credential proxy to the broker; everything is written to the audit log. The client's replies and approvals come back as events through the client app.">
+      <defs>
+        <marker id="hd-ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+        <marker id="hdm-ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdm"/></marker>
+        <marker id="hdp-ma" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdp"/></marker>
+      </defs>
+      <text x="20" y="32" class="tl">WHAT STARTS A RUN</text>
+      <text x="420" y="32" class="tl">WHAT A RUN WORKS WITH</text>
+      <text x="800" y="32" class="tl">WHAT LEAVES A RUN</text>
+
+      <!-- sources -->
+      <rect x="20" y="50" width="150" height="52" rx="10" class="b"/><text x="32" y="71" class="t14">Market data</text><text x="32" y="89" class="tx">prices, indices, status</text>
+      <rect x="20" y="114" width="150" height="52" rx="10" class="b"/><text x="32" y="135" class="t14">News &amp; earnings</text><text x="32" y="153" class="tx">wires, consensus</text>
+      <rect x="20" y="178" width="150" height="52" rx="10" class="b"/><text x="32" y="199" class="t14">Custodian</text><text x="32" y="217" class="tx">corporate actions</text>
+      <rect x="20" y="242" width="150" height="52" rx="10" class="b"/><text x="32" y="263" class="t14">Portfolio system</text><text x="32" y="281" class="tx">positions, orders, cash</text>
+      <path d="M170,76 L183,76" class="arm" marker-end="url(#hdm-ma)"/>
+      <path d="M170,140 L183,140" class="arm" marker-end="url(#hdm-ma)"/>
+      <path d="M170,204 L183,204" class="arm" marker-end="url(#hdm-ma)"/>
+      <path d="M170,268 L183,268" class="arm" marker-end="url(#hdm-ma)"/>
+
+      <!-- detectors -->
+      <rect x="185" y="50" width="215" height="300" rx="14" class="bh"/>
+      <text x="199" y="76" class="tp">Signal detectors</text>
+      <text x="199" y="94" class="tx">7 + feed health</text>
+      <rect x="199" y="106" width="187" height="24" rx="6" class="b"/><text x="209" y="123" class="t14">A1 Price move</text>
+      <rect x="199" y="136" width="187" height="24" rx="6" class="b"/><text x="209" y="153" class="t14">A6 Market regime</text>
+      <rect x="199" y="166" width="187" height="24" rx="6" class="b"/><text x="209" y="183" class="t14">B1 Earnings</text>
+      <rect x="199" y="196" width="187" height="24" rx="6" class="b"/><text x="209" y="213" class="t14">B3 Corporate actions</text>
+      <rect x="199" y="226" width="187" height="24" rx="6" class="b"/><text x="209" y="243" class="t14">C1 News stories</text>
+      <rect x="199" y="256" width="187" height="24" rx="6" class="b2"/><text x="209" y="273" class="t14">D1 Concentration</text>
+      <rect x="199" y="286" width="187" height="24" rx="6" class="b2"/><text x="209" y="303" class="t14">D6 Account activity</text>
+      <rect x="199" y="316" width="187" height="26" rx="6" class="dash"/><text x="209" y="334" class="t14">F Feed health</text>
+
+      <!-- routing -->
+      <path d="M300,350 L300,388" class="ar" marker-end="url(#hd-ma)"/>
+      <path d="M185,300 L60,300 L60,468" class="ar" marker-end="url(#hd-ma)"/>
+      <text x="68" y="374" class="tx">client detectors (D1, D6)</text>
+      <rect x="90" y="390" width="310" height="56" rx="10" class="b"/>
+      <text x="104" y="412" class="t14">Subscription filter</text>
+      <text x="104" y="432" class="tx">topic · kinds · params → one event per client</text>
+      <path d="M245,446 L245,468" class="ar" marker-end="url(#hd-ma)"/>
+
+      <rect x="20" y="470" width="380" height="64" rx="12" class="bh"/>
+      <text x="36" y="494" class="t14 tpc">Ingest handler → event inbox</text>
+      <text x="36" y="514" class="tx">inbox_events · one queue per client · dedupe</text>
+      <rect x="20" y="558" width="180" height="52" rx="10" class="b"/><text x="34" y="580" class="t14">Timers</text><text x="34" y="598" class="tx">follow-ups, digests</text>
+      <rect x="220" y="558" width="180" height="52" rx="10" class="b"/><text x="234" y="580" class="t14">Client app</text><text x="234" y="598" class="tx">messages, approvals</text>
+      <path d="M110,558 L110,536" class="ar" marker-end="url(#hd-ma)"/>
+      <path d="M310,558 L310,536" class="ar" marker-end="url(#hd-ma)"/>
+
+      <!-- run -->
+      <rect x="420" y="50" width="360" height="400" rx="14" class="brun"/>
+      <text x="436" y="76" class="t">A run, in a session</text>
+      <text x="436" y="94" class="tx">starts a new session or resumes one</text>
+      <rect x="436" y="106" width="328" height="48" rx="9" class="b"/>
+      <text x="450" y="126" class="t14">Context builder</text>
+      <text x="450" y="144" class="tx">tools · system · memory · run header · events</text>
+      <rect x="436" y="164" width="328" height="56" rx="9" class="ba"/>
+      <text x="450" y="186" class="t14 ta">Agent loop · Claude Opus 5.5</text>
+      <text x="450" y="206" class="tx">Messages API · tool_use ↔ tool_result</text>
+      <rect x="436" y="230" width="328" height="48" rx="9" class="b"/>
+      <text x="450" y="250" class="t14">Tool router</text>
+      <text x="450" y="268" class="tx">update_subscriptions → subscription filter</text>
+      <rect x="436" y="288" width="328" height="70" rx="9" class="bh"/>
+      <text x="450" y="310" class="t14 tpc">Permissions</text>
+      <text x="450" y="330" class="tx">1 policy · 2 classifier · 3 deferral · 4 proxy</text>
+      <text x="450" y="348" class="tx">orders are deferred to the client</text>
+      <rect x="436" y="370" width="158" height="66" rx="9" class="b"/>
+      <text x="450" y="392" class="t14">Memory</text>
+      <text x="450" y="410" class="tx">clients/{id}/ bucket</text>
+      <rect x="606" y="370" width="158" height="66" rx="9" class="b"/>
+      <text x="620" y="392" class="t14">Session store</text>
+      <text x="620" y="410" class="tx">transcripts, paused</text>
+      <path d="M436,254 L410,254 L410,418 L402,418" class="arp" marker-end="url(#hdp-ma)"/>
+
+      <rect x="420" y="470" width="150" height="64" rx="10" class="b"/>
+      <text x="434" y="494" class="t14">Worker</text>
+      <text x="434" y="514" class="tx">lease per client</text>
+      <rect x="590" y="470" width="190" height="64" rx="10" class="b2"/>
+      <text x="604" y="494" class="t14">Nightly jobs</text>
+      <text x="604" y="514" class="tx">dreaming · reconciler</text>
+      <path d="M400,502 L418,502" class="ar" marker-end="url(#hd-ma)"/>
+      <path d="M495,470 L495,452" class="ar" marker-end="url(#hd-ma)"/>
+
+      <!-- leaves -->
+      <rect x="800" y="50" width="360" height="86" rx="12" class="bh"/>
+      <text x="816" y="74" class="t14 tpc">Outbox + dispatcher</text>
+      <text x="816" y="94" class="tx">compliance check · dedupe · pacing · digest</text>
+      <text x="816" y="112" class="tx">alerts at once (max 3/day) · reports in active hours</text>
+      <rect x="800" y="170" width="360" height="56" rx="10" class="b"/>
+      <text x="816" y="192" class="t14">Client</text>
+      <text x="816" y="212" class="tx">alerts · reports · digest · replies · approval cards</text>
+      <rect x="800" y="290" width="360" height="60" rx="10" class="b"/>
+      <text x="816" y="314" class="t14">Credential proxy → broker</text>
+      <text x="816" y="334" class="tx">orders only with an approved, unexpired deferral</text>
+      <rect x="800" y="380" width="360" height="56" rx="10" class="b2"/>
+      <text x="816" y="402" class="t14">Audit log</text>
+      <text x="816" y="420" class="tx">every event, run, tool call, approval and message</text>
+      <path d="M764,192 L788,192 L788,93 L798,93" class="arp" marker-end="url(#hdp-ma)"/>
+      <path d="M980,136 L980,168" class="arp" marker-end="url(#hdp-ma)"/>
+      <path d="M764,320 L798,320" class="ar" marker-end="url(#hd-ma)"/>
+      <path d="M1160,198 L1172,198 L1172,626 L310,626 L310,614" class="ard" marker-end="url(#hdm-ma)"/>
+      <text x="740" y="620" class="ts" text-anchor="middle">replies and approvals come back as events</text>
+    </svg>
+    </div>
+    <figcaption>Shared detectors (white) publish once and the filter fans out to subscribed clients. Client detectors (grey) know their client and write straight to the inbox. The orange path from the tool router is the agent changing its own subscriptions.</figcaption>
+  </figure>
+  <h3>The five primitives in the MVP</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Primitive</th><th>MVP component</th></tr></thead>
+    <tbody>
+      <tr><td><b>Event inbox</b></td><td class="m"><code>inbox_events</code>, fed by the subscription filter (A1, A6, B1, B3, C1), the client detectors (D1, D6), the client app, approvals and timers</td></tr>
+      <tr><td><b>Timers</b></td><td class="m">Follow-ups set by the agent (e.g. "check at the close", election deadlines); the weekly digest schedule</td></tr>
+      <tr><td><b>Memory</b></td><td class="m"><code>clients/{id}/</code> in a versioned bucket; nightly dreaming</td></tr>
+      <tr><td><b>Permissions</b></td><td class="m">Policy tiers; <code>place_order</code> and <code>cancel_order</code> deferred to the client; the credential proxy</td></tr>
+      <tr><td><b>Outbox</b></td><td class="m"><code>outbox_messages</code> and the dispatcher: push, in-app chat, email</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Component inventory</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Component</th><th>Kind</th><th>Suggested implementation</th></tr></thead>
+    <tbody>
+      <tr><td><b>Signal detectors (7) + feed health</b></td><td class="m">services</td><td class="m">One stream consumer per detector, registered in <code>detector_catalog</code></td></tr>
+      <tr><td><b>Signal bus</b></td><td class="m">stream</td><td class="m">A Kafka or Kinesis topic for shared signals</td></tr>
+      <tr><td><b>Subscription filter</b></td><td class="m">service + table</td><td class="m">Stream consumer + <code>subscriptions</code></td></tr>
+      <tr><td><b>Ingest handler</b></td><td class="m">service</td><td class="m">Stateless HTTP service behind the API gateway</td></tr>
+      <tr><td><b>Event inbox</b></td><td class="m">table</td><td class="m">Postgres <code>inbox_events</code></td></tr>
+      <tr><td><b>Timers + scheduler</b></td><td class="m">table + service</td><td class="m">Postgres <code>timers</code> + a single-leader poller</td></tr>
+      <tr><td><b>Worker</b></td><td class="m">service pool</td><td class="m">Autoscaled; per-client lease with a Postgres advisory lock</td></tr>
+      <tr><td><b>Context builder, agent loop</b></td><td class="m">library</td><td class="m">Inside the worker; Anthropic SDK with <code>claude-opus-5-5</code></td></tr>
+      <tr><td><b>Session store</b></td><td class="m">table + bucket</td><td class="m">Postgres <code>sessions</code> + JSONL transcripts in the object store</td></tr>
+      <tr><td><b>Memory</b></td><td class="m">bucket</td><td class="m">S3-compatible bucket with versioning</td></tr>
+      <tr><td><b>Permissions</b></td><td class="m">service + table</td><td class="m">Policy service, <code>deferrals</code>, an egress proxy backed by a secrets vault</td></tr>
+      <tr><td><b>Outbox + dispatcher</b></td><td class="m">table + service</td><td class="m">Postgres <code>outbox_messages</code> + dispatcher</td></tr>
+      <tr><td><b>Nightly jobs</b></td><td class="m">batch</td><td class="m">Dreaming (Message Batches API), the subscription reconciler, A6's client exposure table</td></tr>
+      <tr><td><b>Audit log</b></td><td class="m">append-only</td><td class="m">Append-only table, exported nightly to write-once storage</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+
+<div class="part" id="part-detectors">
+  <div class="pk">Part 3</div>
+  <h2 class="ph">Signal detectors (7 + F)</h2>
+  <p>Detectors turn raw data into typed signals that agents subscribe to. The MVP builds seven of them, plus feed health, each limited to the kinds an equity portfolio needs.</p>
+</div>
+
+<section id="det-glance">
+  <h2>At a glance</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Detector</th><th>Why it's essential</th><th>MVP kinds</th><th>Topics</th></tr></thead>
+    <tbody>
+      <tr><td><a href="#a1"><b>A1 Price move</b></a> <span class="tag a">shared</span></td><td class="m">The core signal: unusual moves in each stock the client holds</td><td class="m"><code>price_move.intraday</code>, <code>.close</code>, <code>.gap</code>, <code>trading.halt</code>, <code>trading.resume</code></td><td class="m"><code>ticker:</code></td></tr>
+      <tr><td><a href="#a6"><b>A6 Market regime</b></a> <span class="tag a">shared</span></td><td class="m">Market-wide sell-offs; lets A1 use <code>residual_only</code>, so a crash produces one market message, not twenty stock alerts</td><td class="m"><code>market.shock</code>, <code>.drawdown_band</code>, <code>.circuit_breaker</code>, <code>.closure</code></td><td class="m"><code>market:</code></td></tr>
+      <tr><td><a href="#b1"><b>B1 Earnings</b></a> <span class="tag a">shared</span></td><td class="m">Results days are when single stocks move most, and a pre-brief is high value</td><td class="m"><code>earnings.upcoming</code>, <code>.result</code>, <code>.guidance</code></td><td class="m"><code>ticker:</code></td></tr>
+      <tr><td><a href="#b3"><b>B3 Corporate actions</b></a> <span class="tag a">shared</span></td><td class="m">Dividends, splits and M&amp;A affect every shareholder; a missed election costs money</td><td class="m"><code>ca.announced</code>, <code>.dividend_change</code>, <code>.election_open</code></td><td class="m"><code>ticker:</code> <code>isin:</code></td></tr>
+      <tr><td><a href="#c1"><b>C1 News stories</b></a> <span class="tag a">shared</span></td><td class="m">Explains <i>why</i> a stock moved</td><td class="m"><code>news.story_new</code></td><td class="m"><code>issuer:</code> <code>sector:</code> <code>theme:</code></td></tr>
+      <tr><td><a href="#d1"><b>D1 Concentration</b></a> <span class="tag p">client</span></td><td class="m">The main portfolio risk when everything is equity</td><td class="m"><code>drift.concentration</code></td><td class="m"><code>client:drift</code></td></tr>
+      <tr><td><a href="#d6"><b>D6 Account activity</b></a> <span class="tag p">client</span></td><td class="m">Closes the loop on approved orders</td><td class="m"><code>account.order_filled</code>, <code>_partial</code>, <code>_failed</code>, <code>account.cash_movement</code></td><td class="m"><code>client:activity</code></td></tr>
+      <tr><td><a href="#feed-health"><b>F Feed health</b></a> <span class="tag n">internal</span></td><td class="m">No signals from stale or bad prices</td><td class="m">—</td><td class="m">not subscribable</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="det-common">
+  <h2>The common contract</h2>
+  <p class="section-intro">Every detector uses the same subscription interface and the same signal format, so the agent learns one way to subscribe and the platform handles every detector the same way. Full detail is in the <a href="wealth-agent-signal-detectors.html#part-common">signal detectors design</a>.</p>
+
+  <h3>Kinds and params</h3>
+  <div class="grid two">
+    <div class="card"><span class="num">kinds</span><h3>Which events?</h3><p>The types of event to receive. If <code>kinds</code> is left out, the subscription gets the kinds marked <b>default</b>.</p></div>
+    <div class="card"><span class="num">params</span><h3>How big?</h3><p>Thresholds on the signal's measurements. Each param applies only to the kinds it lists, and a kind with no applicable params always passes.</p></div>
+  </div>
+
+  <h3>Agent tools</h3>
+<pre>update_subscriptions(changes: [{
+  op:         "add" | "update" | "remove",
+  detector:   "price_move",
+  topic:      "ticker:NVDA",
+  kinds:      ["price_move.*", "trading.*"],     <span class="c"># which events; default = the detector's default kinds</span>
+  params:     {"min_z": 2.5, "min_move_pct": 3},   <span class="c"># how big; validated against the catalogue</span>
+  expires_at: "2026-12-15",                       <span class="c"># optional; a temporary watch</span>
+  reason:     "18% of portfolio"                  <span class="c"># required; goes to the audit log</span>
+}])
+<span class="c">→ per change: applied | applied_with_warning(reason) | rejected(reason) | blocked(reason)</span>
+
+list_subscriptions(detector?, topic?)
+describe_detector(detector)           <span class="c">→ kinds and params in full: type, default, floor, applies_to, checks</span>
+acknowledge(signal_id, reason)        <span class="c">→ for must_acknowledge signals handled without a message</span></pre>
+
+  <h3>Tables</h3>
+<pre>CREATE TABLE detector_catalog (
+  detector_id     text    PRIMARY KEY,       <span class="c">-- 'price_move'</span>
+  scope           text    NOT NULL,          <span class="c">-- 'shared' | 'client'</span>
+  version         text    NOT NULL,          <span class="c">-- stamped on every signal</span>
+  topic_patterns  text[]  NOT NULL,          <span class="c">-- {'ticker:*'}</span>
+  kinds           jsonb   NOT NULL,          <span class="c">-- [{kind, on_by_default, default_severity, must_acknowledge, measurements}]</span>
+  params          jsonb   NOT NULL,          <span class="c">-- {name: {type, default, floor, applies_to, checks, description}}</span>
+  summary         text    NOT NULL           <span class="c">-- rendered into the system prompt</span>
+);
+
+CREATE TABLE subscriptions (
+  client_id    uuid         NOT NULL,
+  detector_id  text         NOT NULL REFERENCES detector_catalog,
+  topic        text         NOT NULL,
+  kinds        text[],                              <span class="c">-- NULL = the detector's default kinds</span>
+  params       jsonb        NOT NULL DEFAULT '{}',
+  set_by       text         NOT NULL,               <span class="c">-- 'onboarding' | 'agent' | 'client' | 'system'</span>
+  mandatory    boolean      NOT NULL DEFAULT false, <span class="c">-- system rows the agent can't remove</span>
+  reason       text         NOT NULL,
+  expires_at   timestamptz,
+  updated_at   timestamptz  NOT NULL DEFAULT now(),
+  PRIMARY KEY (client_id, detector_id, topic)
+);
+CREATE INDEX ON subscriptions (detector_id, topic);</pre>
+
+  <h3>Signal format</h3>
+<pre>{
+  "signal_id":        "price_move:NVDA:2026-11-14:intraday:down:b2",
+  "detector":         "price_move",
+  "detector_version": "1.0.0",
+  "kind":             "price_move.intraday",
+  "scope":            "shared",                                    <span class="c">// or "client:&lt;id&gt;"</span>
+  "topics":           ["ticker:NVDA", "sector:semiconductors"],
+  "magnitude":        {"move_pct": -8.1, "z": -4.3, "residual_z": -3.6, "volume_ratio": 3.2},
+  "severity_hint":    3,
+  "story_key":        "NVDA:guidance-cut:2026-11-14",              <span class="c">// → outbox topic_key</span>
+  "observed_at":      "2026-11-14T15:42:10Z",
+  "valid_until":      "2026-11-14T16:12:10Z",
+  "deadline":         null,
+  "market_session":   "regular",
+  "trust":            "licensed_feed",
+  "must_acknowledge": false,
+  "evidence":         [{"type": "quote", "ref": "vendor:NVDA@2026-11-14T15:42:10Z"}]
+}</pre>
+
+  <h3>How the filter matches a signal</h3>
+<pre>for signal in signal_bus:
+    subs = subscriptions.where(detector_id = signal.detector, topic IN signal.topics, not expired)
+    for client_id, rows in group_by(subs, "client_id"):
+        hits = [r for r in rows
+                if kind_matches(r.kinds or detector.default_kinds, signal.kind)
+                and params_pass(detector, r.params, signal)]   <span class="c"># each param checked only for its kinds</span>
+        if not hits:
+            continue                                           <span class="c"># dropped: no run, no cost</span>
+        inbox.insert(client_id, source="detector", type="signal",
+                     source_event_id=signal.signal_id,
+                     priority=signal.severity_hint,
+                     available_at=batch_time(signal.severity_hint),
+                     payload=signal + {"matched": hits})       <span class="c"># one event per client</span></pre>
+  <p class="body">Client detectors (D1, D6) skip the bus. They check their one client's subscription row in the same way and post to the ingest handler directly.</p>
+
+  <h3>Severity and routing</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th><code>severity_hint</code></th><th>Meaning</th><th>Routing</th><th>MVP examples</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag al">0</span></td><td class="m">Critical</td><td class="m">Wake now; <code>must_acknowledge</code> where flagged</td><td class="m">Circuit breaker</td></tr>
+      <tr><td><span class="tag al">1–3</span></td><td class="m">High</td><td class="m">Wake now</td><td class="m">4σ drop, guidance withdrawn, election opens, market correction</td></tr>
+      <tr><td><span class="tag p">4–6</span></td><td class="m">Normal</td><td class="m">Wake within 15 minutes, batched</td><td class="m">2.5σ move, results published, dividend cut</td></tr>
+      <tr><td><span class="tag n">7–9</span></td><td class="m">Low</td><td class="m">Next batch window, usually ends up in the digest</td><td class="m">Report tomorrow, dividend raise</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note"><b><code>severity_hint</code> is not the client's priority.</b> It is the size of the fact in the market. The agent decides what it means for this client and sets the message's kind and priority itself.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1180 280" role="img" aria-label="Hysteresis example: a z-score rises through the 2.5 sigma arm line and emits signal one at severity 6; it oscillates around 2.5 without falling below the 1.5 sigma re-arm line, so no repeat signals; it then crosses the 4 sigma escalation band and emits signal two at severity 3; it falls below 1.5 sigma, which re-arms the detector; it later crosses 2.5 sigma again and emits signal three.">
+      <line x1="80" y1="40" x2="80" y2="240" class="axis"/>
+      <line x1="80" y1="240" x2="1140" y2="240" class="axis"/>
+      <text x="58" y="48" class="tx">|z|</text>
+      <text x="1140" y="262" class="tx" text-anchor="end">time →</text>
+      <line x1="80" y1="108" x2="1140" y2="108" class="thr-p"/>
+      <line x1="80" y1="157.5" x2="1140" y2="157.5" class="thr-p"/>
+      <line x1="80" y1="190.5" x2="1140" y2="190.5" class="thr"/>
+      <text x="88" y="102" class="tx">escalate 4σ</text>
+      <text x="88" y="151" class="tx">arm 2.5σ</text>
+      <text x="88" y="184" class="tx">re-arm 1.5σ</text>
+      <path d="M80,223.5 L164.8,210.3 L228.4,180.6 L270.8,150.9 L313.2,141 L355.6,164.1 L398,144.3 L440.4,167.4 L482.8,137.7 L546.4,121.2 L588.8,91.5 L631.2,88.2 L694.8,127.8 L758.4,174 L800.8,200.4 L864.4,210.3 L928,193.8 L991.6,160.8 L1034,144.3 L1097.6,154.2 L1140,167.4" class="zline"/>
+      <line x1="261" y1="30" x2="261" y2="150" class="lead"/>
+      <line x1="565" y1="30" x2="565" y2="101" class="lead"/>
+      <line x1="1000" y1="30" x2="1000" y2="150" class="lead"/>
+      <line x1="420" y1="56" x2="420" y2="150" class="lead"/>
+      <line x1="785" y1="56" x2="785" y2="183" class="lead"/>
+      <circle cx="261.3" cy="157.5" r="6" class="dot-p"/>
+      <circle cx="565.5" cy="108" r="6" class="dot-p"/>
+      <circle cx="784.9" cy="190.5" r="6" class="dot-ok"/>
+      <circle cx="1000.1" cy="157.5" r="6" class="dot-p"/>
+      <text x="261" y="24" class="t14 tpc" text-anchor="middle">① signal · severity 6</text>
+      <text x="565" y="24" class="t14 tpc" text-anchor="middle">② escalation · severity 3</text>
+      <text x="1000" y="24" class="t14 tpc" text-anchor="middle">③ new signal · severity 6</text>
+      <text x="420" y="50" class="ts" text-anchor="middle">re-crosses 2.5σ: no signal</text>
+      <text x="785" y="50" class="ts" text-anchor="middle">re-armed: fell below 1.5σ</text>
+    </svg>
+    </div>
+    <figcaption>One signal per band, not one per crossing. A move hovering around 2.5σ produces one signal; reaching 4σ sends an update with the same <code>story_key</code>.</figcaption>
+  </figure>
+
+  <h3>Who decides what</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Layer</th><th>Decides</th></tr></thead>
+    <tbody>
+      <tr><td><b>Detector</b></td><td class="m"><b>What happened</b> and how big it is</td></tr>
+      <tr><td><b>Filter and inbox</b></td><td class="m"><b>Whether to wake the agent</b>, and how soon</td></tr>
+      <tr><td><b>Agent</b></td><td class="m"><b>What it means for this client and what to do</b>: silence, finding, report, alert, follow-up or a proposed order</td></tr>
+      <tr><td><b>Permissions</b></td><td class="m"><b>Whether an action may run</b></td></tr>
+      <tr><td><b>Dispatcher</b></td><td class="m"><b>When and how the client hears it</b></td></tr>
+      <tr><td><b>Client</b></td><td class="m"><b>Final yes or no</b> on every order</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="body">Signals marked <code>must_acknowledge</code> (in the MVP: <code>ca.election_open</code>) must lead to a message, a follow-up or an <code>acknowledge()</code> call. If none is recorded within 30 minutes, the signal goes to the relationship manager.</p>
+</section>
+
+<section id="onboarding">
+  <h2>Default subscriptions for a new client</h2>
+  <p class="section-intro">The onboarding run sets these. The nightly subscription reconciler checks that every holding keeps its baseline rows, so coverage never depends on the model remembering.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Detector</th><th>Topics</th><th>Defaults</th></tr></thead>
+    <tbody>
+      <tr><td><b>A1</b></td><td class="m"><code>ticker:</code> every holding; ETF constituents ≥ 2% (<code>residual_only</code>); interest names (<code>min_z: 3</code>, <code>residual_only</code>)</td><td class="m"><code>min_z: 2.5</code>; any percentage the client stated → <code>min_move_pct</code></td></tr>
+      <tr><td><b>A6</b></td><td class="m"><code>market:</code> each market ≥ 15% of the portfolio</td><td class="m"><code>min_band: correction</code></td></tr>
+      <tr><td><b>B1</b></td><td class="m"><code>ticker:</code> holdings ≥ 1%; ETF constituents ≥ 2%</td><td class="m"><code>days_ahead: 1</code>, <code>min_surprise_pct: 5</code></td></tr>
+      <tr><td><b>B3</b></td><td class="m"><code>ticker:</code> every holding</td><td class="m">Defaults; <code>ca.election_open</code> is mandatory</td></tr>
+      <tr><td><b>C1</b></td><td class="m"><code>issuer:</code> every holding; <code>sector:</code> ≥ 15%; <code>theme:</code> from interests</td><td class="m"><code>min_importance: 3</code> (sectors 4)</td></tr>
+      <tr><td><b>D1</b></td><td class="m"><code>client:drift</code></td><td class="m"><code>drift.concentration</code>, bank limits</td></tr>
+      <tr><td><b>D6</b></td><td class="m"><code>client:activity</code></td><td class="m"><code>min_amount: 10,000</code></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="body">A 12-stock portfolio ends up with about 12 × 4 + 2 + 2 ≈ 52 rows, well under the cap of 300.</p>
+</section>
+
+<!-- ======================= A1 ======================= -->
+<section id="a1" class="detector">
+  <h2><span class="k">A1</span>Price move detector</h2>
+  <div class="meta"><span class="tag a">shared</span><span class="tag n">detector_id: price_move</span><span class="tag n">streaming</span><span class="tag n">p95 ≤ 5 s</span></div>
+  <p class="section-intro">Watches the price of every stock and ETF that at least one client holds or watches, and emits a signal when a move is <b>unusual for that instrument</b>. Unusual is measured in σ, multiples of the instrument's normal daily move, so the same rule works for a stable blue chip and a volatile small cap.</p>
+  <figure><div class="scroll">
+      <svg viewBox="0 0 1180 470" role="img" aria-label="A1 · Price move detector: inputs Exchange quotes, Official closes, Trading status, Reference data; steps Normalise, Baseline, Detect, Debounce; emits signal kinds price_move.intraday, price_move.close, price_move.gap, trading.halt, trading.resume; the subscription filter checks topic, kind and params, drops non-matches, and wakes the client agent, which may respond: Silent, Follow-up at close, Report, Alert. The agent subscribes with update_subscriptions.">
+      <defs>
+      <marker id="hd-a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+      <marker id="hdm-a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdm"/></marker>
+      <marker id="hdp-a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdp"/></marker>
+      </defs>
+      <text x="20" y="32" class="tl">INPUT</text>
+      <text x="222" y="32" class="tl">DETECTOR</text>
+      <text x="532" y="32" class="tl">SIGNAL</text>
+      <text x="748" y="32" class="tl">ROUTE</text>
+      <text x="944" y="32" class="tl">AGENT</text>
+      <rect x="20" y="50" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="76" class="t14">Exchange quotes</text>
+      <text x="34" y="96" class="tx">last, volume, bid/ask</text>
+      <path d="M200,81 L220,81" class="arm" marker-end="url(#hdm-a1)"/>
+      <rect x="20" y="124" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="150" class="t14">Official closes</text>
+      <text x="34" y="170" class="tx">end-of-day prices</text>
+      <path d="M200,155 L220,155" class="arm" marker-end="url(#hdm-a1)"/>
+      <rect x="20" y="198" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="224" class="t14">Trading status</text>
+      <text x="34" y="244" class="tx">halts, limit up/down</text>
+      <path d="M200,229 L220,229" class="arm" marker-end="url(#hdm-a1)"/>
+      <rect x="20" y="272" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="298" class="t14">Reference data</text>
+      <text x="34" y="318" class="tx">adjust factors, β, sector</text>
+      <path d="M200,303 L220,303" class="arm" marker-end="url(#hdm-a1)"/>
+      <rect x="222" y="50" width="290" height="296" rx="14" class="bh"/>
+      <text x="238" y="80" class="tp">A1 · Price move</text>
+      <rect x="238" y="98" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="120" class="t14">1 · Normalise</text>
+      <text x="252" y="139" class="tx">adjust prior close for splits, ex-div</text>
+      <rect x="238" y="158" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="180" class="t14">2 · Baseline</text>
+      <text x="252" y="199" class="tx">EWMA volatility, β to benchmark</text>
+      <rect x="238" y="218" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="240" class="t14">3 · Detect</text>
+      <text x="252" y="259" class="tx">z = return ÷ scaled vol; gaps</text>
+      <rect x="238" y="278" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="300" class="t14">4 · Debounce</text>
+      <text x="252" y="319" class="tx">arm 2.5σ · re-arm 1.5σ · bands 4σ, 6σ</text>
+      <path d="M512,198 L530,198" class="ar" marker-end="url(#hd-a1)"/>
+      <rect x="532" y="50" width="196" height="296" rx="12" class="ba"/>
+      <text x="546" y="76" class="t ta">signal</text>
+      <text x="546" y="98" class="tx">kind</text>
+      <text x="546" y="118" class="mono">price_move.intraday</text>
+      <text x="546" y="137" class="mono">price_move.close</text>
+      <text x="546" y="156" class="mono">price_move.gap</text>
+      <text x="546" y="175" class="mono">trading.halt</text>
+      <text x="546" y="194" class="mono">trading.resume</text>
+      <text x="546" y="252" class="tx">magnitude</text>
+      <text x="546" y="270" class="mono">move_pct, z, residual_z</text>
+      <text x="546" y="288" class="mono">volume_ratio, window</text>
+      <text x="546" y="318" class="tx">topics</text>
+      <text x="546" y="336" class="monom">ticker:NVDA …</text>
+      <path d="M728,198 L746,198" class="ar" marker-end="url(#hd-a1)"/>
+      <rect x="748" y="128" width="176" height="140" rx="12" class="b"/>
+      <text x="762" y="154" class="t14">Subscription filter</text>
+      <text x="762" y="178" class="tx">① topic subscribed?</text>
+      <text x="762" y="198" class="tx">② kind in kinds?</text>
+      <text x="762" y="218" class="tx">③ params pass?</text>
+      <text x="762" y="252" class="tx">→ one event per client</text>
+      <path d="M770,268 L770,302" class="ard" marker-end="url(#hdm-a1)"/>
+      <text x="780" y="300" class="ts">dropped · no run</text>
+      <path d="M924,198 L942,198" class="ar" marker-end="url(#hd-a1)"/>
+      <rect x="944" y="50" width="216" height="296" rx="12" class="brun"/>
+      <text x="958" y="76" class="t">Client agent</text>
+      <text x="958" y="94" class="tx">relate → research → analyze</text>
+      <rect x="956" y="108" width="192" height="50" rx="9" class="b2"/>
+      <text x="968" y="129" class="t14">Silent</text>
+      <text x="968" y="147" class="tx">small, market-driven move</text>
+      <rect x="956" y="166" width="192" height="50" rx="9" class="ba"/>
+      <text x="968" y="187" class="t14 ta">Follow-up at close</text>
+      <text x="968" y="205" class="tx">intraday move may reverse</text>
+      <rect x="956" y="224" width="192" height="50" rx="9" class="bok"/>
+      <text x="968" y="245" class="t14 tok">Report</text>
+      <text x="968" y="263" class="tx">large holding, cause found</text>
+      <rect x="956" y="282" width="192" height="50" rx="9" class="bal"/>
+      <text x="968" y="303" class="t14 tal">Alert</text>
+      <text x="968" y="321" class="tx">halt or big ≥4σ drop</text>
+      <path d="M1052,346 L1052,384 L904,384 L904,272" class="arp" marker-end="url(#hdp-a1)"/>
+      <text x="532" y="412" class="t14 tpc">The agent subscribes with update_subscriptions</text>
+      <text x="532" y="434" class="mono">{detector:&quot;price_move&quot;, topic:&quot;ticker:NVDA&quot;,</text>
+      <text x="532" y="452" class="mono"> params:{min_z:2.5, min_move_pct:3}}</text>
+      <text x="20" y="412" class="tl">CADENCE · LATENCY</text>
+      <text x="20" y="434" class="ts">Streaming on ticks · tick → inbox p95 ≤ 5 s</text>
+      </svg>
+  </div><figcaption>A1 sees every tick in the active universe and passes on only unusual moves. The filter then drops moves below each client's own thresholds.</figcaption></figure>
+  <div class="grid two">
+    <div class="card"><h3>Inputs</h3><ul><li><b>Exchange quotes and trades</b>: last price, volume, bid/ask</li><li><b>Official closing prices</b></li><li><b>Trading status</b>: halts, suspensions, resumptions, limit-up/limit-down</li><li><b>Reference data</b>: split and dividend adjustment factors, benchmark and beta, sector and region tags</li><li><b>Active universe</b>: instruments with at least one subscriber</li></ul></div>
+    <div class="card"><h3>How it detects</h3><ul><li><b>Normalise:</b> adjust the previous close for splits and ex-dividend dates, so a 2-for-1 split doesn't look like a crash. Drop ticks that feed health flags as bad.</li><li><b>Baseline:</b> per instrument, an EWMA daily volatility (λ = 0.94, about 60 days) and beta to its benchmark, updated at each close.</li><li><b>Detect:</b> for each window, <code>z = return ÷ (σ_daily × √elapsed)</code>. Also a <b>residual z</b> after removing beta × the benchmark's move, separating the stock's own move from the market's. Opening gaps and status changes.</li><li><b>Debounce:</b> arm at |z| ≥ 2.5, re-arm below 1.5, bands at 4σ and 6σ; one signal per instrument, window, direction and band per day.</li></ul></div>
+  </div>
+  <h4 class="sub">Signal kinds</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kind</th><th>Fires when</th><th>severity_hint</th><th>Measurements reported</th><th>Accepts params</th></tr></thead>
+    <tbody>
+      <tr><td><code>price_move.intraday</code> <span class="tag ok">default</span></td><td class="m">|z| since the previous close crosses a band during the session</td><td class="m">6 at 2.5σ · 3 at 4σ · 1 at 6σ</td><td class="m"><code>move_pct, z, residual_z, volume_ratio</code></td><td class="m"><code>min_z</code>, <code>min_move_pct</code>, <code>direction</code>, <code>residual_only</code></td></tr>
+      <tr><td><code>price_move.close</code> <span class="tag ok">default</span></td><td class="m">The close-to-close move crosses a band</td><td class="m">7 · 4 · 2</td><td class="m"><code>move_pct, z, residual_z</code></td><td class="m"><code>min_z</code>, <code>min_move_pct</code>, <code>direction</code>, <code>residual_only</code></td></tr>
+      <tr><td><code>price_move.gap</code> <span class="tag ok">default</span></td><td class="m">The open versus the previous close crosses a band (news while the market was closed)</td><td class="m">5 · 2</td><td class="m"><code>gap_pct, z</code></td><td class="m"><code>min_z</code>, <code>min_move_pct</code>, <code>direction</code>, <code>residual_only</code></td></tr>
+      <tr><td><code>trading.halt</code> <span class="tag ok">default</span></td><td class="m">The stock is halted, suspended or limit-locked</td><td class="m">2</td><td class="m"><code>reason_code, halted_at</code></td><td class="m"><code>halt_reasons</code></td></tr>
+      <tr><td><code>trading.resume</code> <span class="tag ok">default</span></td><td class="m">Trading resumes</td><td class="m">4</td><td class="m"><code>resumed_at, indicative_price</code></td><td class="m"><span class="tag n">none</span> always passes</td></tr>
+    </tbody>
+  </table></div>
+  <h4 class="sub">Subscription</h4>
+  <p class="body">Topics: <code>ticker:{symbol}</code>. For the <code>price_move.*</code> kinds a signal passes when <code>|z| ≥ min_z</code>, the move is at least <code>min_move_pct</code> (if set), the direction matches and, with <code>residual_only</code>, <code>|residual_z| ≥ min_z</code>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Applies to</th><th>Checks</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>min_z</code></td><td class="m">number ≥ 2.5</td><td class="m">2.5</td><td class="m"><code>price_move.*</code></td><td class="m"><code>|z|</code></td><td class="m">How unusual the move must be, in multiples of the stock's normal daily move (σ)</td></tr>
+      <tr><td><code>min_move_pct</code></td><td class="m">number</td><td class="m">—</td><td class="m"><code>price_move.*</code></td><td class="m"><code>|move_pct|</code>, or <code>|gap_pct|</code> for gaps</td><td class="m">Absolute floor, e.g. the client's "only moves over 3%"</td></tr>
+      <tr><td><code>direction</code></td><td class="m">both · down · up</td><td class="m">both</td><td class="m"><code>price_move.*</code></td><td class="m">sign of <code>move_pct</code> / <code>gap_pct</code></td><td class="m">Falls, rises or both</td></tr>
+      <tr><td><code>residual_only</code></td><td class="m">boolean</td><td class="m">false</td><td class="m"><code>price_move.*</code></td><td class="m">switches the <code>min_z</code> check to <code>|residual_z|</code></td><td class="m">Ignore the part of a move explained by the whole market (A6 covers that)</td></tr>
+      <tr><td><code>halt_reasons</code></td><td class="m">news_pending · regulatory · suspension · volatility_pause</td><td class="m">all except volatility_pause</td><td class="m"><code>trading.halt</code></td><td class="m"><code>reason_code</code></td><td class="m">Short automatic volatility pauses are frequent and rarely matter</td></tr>
+    </tbody>
+  </table></div>
+<pre>update_subscriptions(changes=[
+  {op: "add", detector: "price_move", topic: "ticker:NVDA",
+   kinds: ["price_move.*", "trading.*"],
+   params: {min_z: 2.5, min_move_pct: 3},
+   reason: "18% of portfolio; client: 'alert only on moves over 3%'"},
+  {op: "add", detector: "price_move", topic: "ticker:0700.HK",
+   params: {min_z: 3, residual_only: true}, expires_at: "2026-12-15",
+   reason: "client asked about Tencent on 14 Nov; temporary watch"}
+])</pre>
+  <p class="body"><b>Onboarding derives:</b> every stock and ETF holding with default params; constituents of held ETFs that are at least 2% of the portfolio after look-through, with <code>residual_only</code>; names from the client's interests with <code>min_z: 3</code> and <code>residual_only</code>; any percentage the client has stated, copied into <code>min_move_pct</code>.</p>
+  <h4 class="sub">What the agent may do</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Situation</th><th>Typical response</th><th>Outcome</th></tr></thead>
+    <tbody>
+      <tr><td>Small position, move matches the market (low <code>residual_z</code>)</td><td class="m">Nothing; A6 covers the market move</td><td class="m"><span class="tag n">silent</span></td></tr>
+      <tr><td>Intraday move, no cause found</td><td class="m">Set a follow-up at the close to see whether the move holds</td><td class="m"><span class="tag a">timer</span></td></tr>
+      <tr><td>Large holding, cause found with <code>search_news</code></td><td class="m">Report what happened, the impact in the client's currency, and whether the reason for holding it has changed</td><td class="m"><span class="tag ok">report</span></td></tr>
+      <tr><td>≥ 4σ drop in a concentrated position, or a halt</td><td class="m">Alert with the exposure and next steps; may prepare a <code>draft_order</code> for discussion</td><td class="m"><span class="tag al">alert</span></td></tr>
+      <tr><td>Matches a client instruction ("tell me if X falls 10%")</td><td class="m">Alert, regardless of z</td><td class="m"><span class="tag al">alert</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note"><b>Edge cases:</b> illiquid stocks are skipped until they have a minimum number of trades in the window. Pre- and post-market trading shows up only as the gap at the open. <b>Later:</b> <code>price_level.52w</code>.</p>
+</section>
+
+<!-- ======================= A6 ======================= -->
+<section id="a6" class="detector">
+  <h2><span class="k">A6</span>Market regime detector</h2>
+  <div class="meta"><span class="tag a">shared</span><span class="tag n">detector_id: market_regime</span><span class="tag n">streaming</span><span class="tag n">p95 ≤ 5 s</span></div>
+  <p class="section-intro">Watches each market as a whole: index shocks, drawdowns from the peak, market-wide circuit breakers and exchange closures. One signal can wake many agents at once. This is the MVP's <b>breaking-event</b> path, where every exposed client gets a personal alert and unexposed clients get nothing.</p>
+  <figure><div class="scroll">
+      <svg viewBox="0 0 1180 470" role="img" aria-label="A6 · Market regime detector: inputs Major indices, Exchange status, Index history, Client exposure; steps Normalise, Baseline, Detect, Debounce; emits signal kinds market.shock, market.drawdown_band, market.circuit_breaker, market.closure; the subscription filter checks topic, kind and params, drops non-matches, and wakes the client agent, which may respond: Silent, Report, Alert, Steady the client. The agent subscribes with update_subscriptions.">
+      <defs>
+      <marker id="hd-a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+      <marker id="hdm-a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdm"/></marker>
+      <marker id="hdp-a6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdp"/></marker>
+      </defs>
+      <text x="20" y="32" class="tl">INPUT</text>
+      <text x="222" y="32" class="tl">DETECTOR</text>
+      <text x="532" y="32" class="tl">SIGNAL</text>
+      <text x="748" y="32" class="tl">ROUTE</text>
+      <text x="944" y="32" class="tl">AGENT</text>
+      <rect x="20" y="50" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="76" class="t14">Major indices</text>
+      <text x="34" y="96" class="tx">HSI, S&amp;P 500, Nasdaq</text>
+      <path d="M200,81 L220,81" class="arm" marker-end="url(#hdm-a6)"/>
+      <rect x="20" y="124" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="150" class="t14">Exchange status</text>
+      <text x="34" y="170" class="tx">circuit breakers, closures</text>
+      <path d="M200,155 L220,155" class="arm" marker-end="url(#hdm-a6)"/>
+      <rect x="20" y="198" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="224" class="t14">Index history</text>
+      <text x="34" y="244" class="tx">peaks, volatility</text>
+      <path d="M200,229 L220,229" class="arm" marker-end="url(#hdm-a6)"/>
+      <rect x="20" y="272" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="298" class="t14">Client exposure</text>
+      <text x="34" y="318" class="tx">nightly beta table</text>
+      <path d="M200,303 L220,303" class="arm" marker-end="url(#hdm-a6)"/>
+      <rect x="222" y="50" width="290" height="296" rx="14" class="bh"/>
+      <text x="238" y="80" class="tp">A6 · Market regime</text>
+      <rect x="238" y="98" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="120" class="t14">1 · Normalise</text>
+      <text x="252" y="139" class="tx">align sessions and time zones</text>
+      <rect x="238" y="158" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="180" class="t14">2 · Baseline</text>
+      <text x="252" y="199" class="tx">52-week peaks, index vol</text>
+      <rect x="238" y="218" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="240" class="t14">3 · Detect</text>
+      <text x="252" y="259" class="tx">shocks, drawdown bands, halts</text>
+      <rect x="238" y="278" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="300" class="t14">4 · Debounce</text>
+      <text x="252" y="319" class="tx">re-arm after half recovery</text>
+      <path d="M512,198 L530,198" class="ar" marker-end="url(#hd-a6)"/>
+      <rect x="532" y="50" width="196" height="296" rx="12" class="ba"/>
+      <text x="546" y="76" class="t ta">signal</text>
+      <text x="546" y="98" class="tx">kind</text>
+      <text x="546" y="118" class="mono">market.shock</text>
+      <text x="546" y="137" class="mono">market.drawdown_band</text>
+      <text x="546" y="156" class="mono">market.circuit_breaker</text>
+      <text x="546" y="175" class="mono">market.closure</text>
+      <text x="546" y="252" class="tx">magnitude</text>
+      <text x="546" y="270" class="mono">move_pct, z</text>
+      <text x="546" y="288" class="mono">drawdown_pct</text>
+      <text x="546" y="318" class="tx">topics</text>
+      <text x="546" y="336" class="monom">market:hk_equity …</text>
+      <path d="M728,198 L746,198" class="ar" marker-end="url(#hd-a6)"/>
+      <rect x="748" y="128" width="176" height="140" rx="12" class="b"/>
+      <text x="762" y="154" class="t14">Subscription filter</text>
+      <text x="762" y="178" class="tx">① topic subscribed?</text>
+      <text x="762" y="198" class="tx">② kind in kinds?</text>
+      <text x="762" y="218" class="tx">③ params pass?</text>
+      <text x="762" y="252" class="tx">→ one event per client</text>
+      <path d="M770,268 L770,302" class="ard" marker-end="url(#hdm-a6)"/>
+      <text x="780" y="300" class="ts">dropped · no run</text>
+      <path d="M924,198 L942,198" class="ar" marker-end="url(#hd-a6)"/>
+      <rect x="944" y="50" width="216" height="296" rx="12" class="brun"/>
+      <text x="958" y="76" class="t">Client agent</text>
+      <text x="958" y="94" class="tx">relate → research → analyze</text>
+      <rect x="956" y="108" width="192" height="50" rx="9" class="b2"/>
+      <text x="968" y="129" class="t14">Silent</text>
+      <text x="968" y="147" class="tx">low exposure, calm profile</text>
+      <rect x="956" y="166" width="192" height="50" rx="9" class="bok"/>
+      <text x="968" y="187" class="t14 tok">Report</text>
+      <text x="968" y="205" class="tx">portfolio impact, context</text>
+      <rect x="956" y="224" width="192" height="50" rx="9" class="bal"/>
+      <text x="968" y="245" class="t14 tal">Alert</text>
+      <text x="968" y="263" class="tx">high exposure</text>
+      <rect x="956" y="282" width="192" height="50" rx="9" class="ba"/>
+      <text x="968" y="303" class="t14 ta">Steady the client</text>
+      <text x="968" y="321" class="tx">no panic selling</text>
+      <path d="M1052,346 L1052,384 L904,384 L904,272" class="arp" marker-end="url(#hdp-a6)"/>
+      <text x="532" y="412" class="t14 tpc">The agent subscribes with update_subscriptions</text>
+      <text x="532" y="434" class="mono">{detector:&quot;market_regime&quot;, topic:&quot;market:hk_equity&quot;,</text>
+      <text x="532" y="452" class="mono"> params:{min_band:&quot;correction&quot;}}</text>
+      <text x="20" y="412" class="tl">CADENCE · LATENCY</text>
+      <text x="20" y="434" class="ts">Streaming · tick → inbox p95 ≤ 5 s (fan-out to many clients)</text>
+      </svg>
+  </div><figcaption>A drawdown band fires once and re-arms only after the index recovers half the band, so a choppy sell-off produces one story, not a stream of alerts.</figcaption></figure>
+  <div class="grid two">
+    <div class="card"><h3>Inputs</h3><ul><li><b>Major indices</b> for the MVP markets (e.g. HSI, HSCEI, S&amp;P 500, Nasdaq 100)</li><li><b>Exchange status</b>: market-wide circuit breakers, unscheduled closures (such as a typhoon or black-rainstorm warning in Hong Kong), outages</li><li><b>Index history</b>: 52-week peaks and volatility</li><li><b>Client exposure table</b>, computed nightly: each client's beta to each market, used only to order the fan-out</li></ul></div>
+    <div class="card"><h3>How it detects</h3><ul><li><b>Normalise:</b> align sessions and time zones. A US shock overnight shows up as an Asian gap the next morning.</li><li><b>Baseline:</b> rolling 52-week peaks for drawdowns; index volatility for z-scores.</li><li><b>Detect:</b> index shocks (|z| ≥ 4 intraday); drawdown bands from the peak (−5% pullback, −10% correction, −20% bear market); circuit breakers and closures.</li><li><b>Debounce:</b> a drawdown band fires once and re-arms after the index recovers half the band; shocks once per index per day per band.</li></ul></div>
+  </div>
+  <h4 class="sub">Signal kinds</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kind</th><th>Fires when</th><th>severity_hint</th><th>Measurements reported</th><th>Accepts params</th></tr></thead>
+    <tbody>
+      <tr><td><code>market.shock</code> <span class="tag ok">default</span></td><td class="m">An index's intraday |z| reaches 4 or more</td><td class="m">2</td><td class="m"><code>index, move_pct, z</code></td><td class="m"><code>min_shock_z</code></td></tr>
+      <tr><td><code>market.drawdown_band</code> <span class="tag ok">default</span></td><td class="m">The fall from the peak crosses −5%, −10% or −20%</td><td class="m">6 · 3 · 2</td><td class="m"><code>drawdown_pct, peak_date</code></td><td class="m"><code>min_band</code></td></tr>
+      <tr><td><code>market.circuit_breaker</code> <span class="tag ok">default</span></td><td class="m">A market-wide trading halt</td><td class="m">0</td><td class="m"><code>exchange, level, resume_at</code></td><td class="m"><span class="tag n">none</span> always passes</td></tr>
+      <tr><td><code>market.closure</code> <span class="tag ok">default</span></td><td class="m">An unscheduled closure or outage</td><td class="m">3</td><td class="m"><code>exchange, reason, expected_reopen</code></td><td class="m"><span class="tag n">none</span> always passes</td></tr>
+    </tbody>
+  </table></div>
+  <h4 class="sub">Subscription</h4>
+  <p class="body">Topics: <code>market:hk_equity</code>, <code>market:us_equity</code> and the other MVP markets.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Applies to</th><th>Checks</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>min_shock_z</code></td><td class="m">number ≥ 4</td><td class="m">4</td><td class="m"><code>market.shock</code></td><td class="m"><code>|z|</code></td><td class="m">Shock threshold</td></tr>
+      <tr><td><code>min_band</code></td><td class="m">pullback · correction · bear</td><td class="m">correction</td><td class="m"><code>market.drawdown_band</code></td><td class="m">band reached by <code>drawdown_pct</code></td><td class="m">Smallest drawdown band to receive</td></tr>
+    </tbody>
+  </table></div>
+<pre>update_subscriptions(changes=[
+  {op: "add", detector: "market_regime", topic: "market:hk_equity",
+   params: {min_band: "correction"},
+   reason: "48% of the portfolio listed in Hong Kong"}
+])</pre>
+  <p class="body"><b>Onboarding derives:</b> each market that is at least 15% of the client's portfolio, at <code>min_band: correction</code>. Closures and circuit breakers are default kinds, so every subscriber gets them.</p>
+  <h4 class="sub">What the agent may do</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Situation</th><th>Typical response</th><th>Outcome</th></tr></thead>
+    <tbody>
+      <tr><td>Low exposure, calm client</td><td class="m">Nothing, or one line in the digest</td><td class="m"><span class="tag n">silent</span></td></tr>
+      <tr><td>Material exposure</td><td class="m">Report the estimated impact (portfolio beta × the index move), past episodes for context, and the house view</td><td class="m"><span class="tag ok">report</span></td></tr>
+      <tr><td>Concentrated in the falling market</td><td class="m">Alert with the exposure and the options</td><td class="m"><span class="tag al">alert</span></td></tr>
+      <tr><td>Memory shows the client worries in sell-offs</td><td class="m">A calm, proactive message. Don't recommend selling into a fall unless the client's own plan calls for it; offer an advisor call.</td><td class="m"><span class="tag ok">report</span></td></tr>
+      <tr><td>Exchange closure</td><td class="m">Tell the client which pending orders and approvals expire at the close</td><td class="m"><span class="tag ok">report</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note"><b>Fan-out:</b> the filter attaches <code>est_impact_pct</code> (the client's beta × the index move) from the nightly exposure table. It is used only to serve the most exposed clients first, never to drop anyone. The <code>story_key</code> is the episode, so later shocks in the same sell-off count as updates and the dispatcher's daily alert cap holds. <b>Later:</b> <code>market.vol_spike</code>, <code>market.regime_change</code>.</p>
+</section>
+
+<!-- ======================= B1 ======================= -->
+<section id="b1" class="detector">
+  <h2><span class="k">B1</span>Earnings &amp; guidance detector</h2>
+  <div class="meta"><span class="tag a">shared</span><span class="tag n">detector_id: earnings</span><span class="tag n">calendar daily</span><span class="tag n">results ≤ 2 min</span></div>
+  <p class="section-intro">Watches company results: the calendar before each report, the result compared with what analysts expected, and changes to the company's own outlook (<b>guidance</b>). Results days are when single stocks move most. Knowing a report is coming lets the agent prepare the client instead of only reacting afterwards.</p>
+  <figure><div class="scroll">
+      <svg viewBox="0 0 1180 470" role="img" aria-label="B1 · Earnings &amp; guidance detector: inputs Earnings calendar, Consensus, Results releases, Guidance; steps Normalise, Baseline, Detect, Debounce; emits signal kinds earnings.upcoming, earnings.result, earnings.guidance; the subscription filter checks topic, kind and params, drops non-matches, and wakes the client agent, which may respond: Digest, Pre-brief, Report, Alert. The agent subscribes with update_subscriptions.">
+      <defs>
+      <marker id="hd-b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+      <marker id="hdm-b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdm"/></marker>
+      <marker id="hdp-b1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdp"/></marker>
+      </defs>
+      <text x="20" y="32" class="tl">INPUT</text>
+      <text x="222" y="32" class="tl">DETECTOR</text>
+      <text x="532" y="32" class="tl">SIGNAL</text>
+      <text x="748" y="32" class="tl">ROUTE</text>
+      <text x="944" y="32" class="tl">AGENT</text>
+      <rect x="20" y="50" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="76" class="t14">Earnings calendar</text>
+      <text x="34" y="96" class="tx">confirmed dates, times</text>
+      <path d="M200,81 L220,81" class="arm" marker-end="url(#hdm-b1)"/>
+      <rect x="20" y="124" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="150" class="t14">Consensus</text>
+      <text x="34" y="170" class="tx">EPS, revenue estimates</text>
+      <path d="M200,155 L220,155" class="arm" marker-end="url(#hdm-b1)"/>
+      <rect x="20" y="198" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="224" class="t14">Results releases</text>
+      <text x="34" y="244" class="tx">press release, filing</text>
+      <path d="M200,229 L220,229" class="arm" marker-end="url(#hdm-b1)"/>
+      <rect x="20" y="272" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="298" class="t14">Guidance</text>
+      <text x="34" y="318" class="tx">company outlook ranges</text>
+      <path d="M200,303 L220,303" class="arm" marker-end="url(#hdm-b1)"/>
+      <rect x="222" y="50" width="290" height="296" rx="14" class="bh"/>
+      <text x="238" y="80" class="tp">B1 · Earnings &amp; guidance</text>
+      <rect x="238" y="98" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="120" class="t14">1 · Normalise</text>
+      <text x="252" y="139" class="tx">issuer, fiscal period, basis</text>
+      <rect x="238" y="158" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="180" class="t14">2 · Baseline</text>
+      <text x="252" y="199" class="tx">consensus frozen pre-release</text>
+      <rect x="238" y="218" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="240" class="t14">3 · Detect</text>
+      <text x="252" y="259" class="tx">T-1, surprise %, guidance change</text>
+      <rect x="238" y="278" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="300" class="t14">4 · Debounce</text>
+      <text x="252" y="319" class="tx">one per release or statement</text>
+      <path d="M512,198 L530,198" class="ar" marker-end="url(#hd-b1)"/>
+      <rect x="532" y="50" width="196" height="296" rx="12" class="ba"/>
+      <text x="546" y="76" class="t ta">signal</text>
+      <text x="546" y="98" class="tx">kind</text>
+      <text x="546" y="118" class="mono">earnings.upcoming</text>
+      <text x="546" y="137" class="mono">earnings.result</text>
+      <text x="546" y="156" class="mono">earnings.guidance</text>
+      <text x="546" y="252" class="tx">magnitude</text>
+      <text x="546" y="270" class="mono">eps_surprise_pct</text>
+      <text x="546" y="288" class="mono">direction, surprise_z</text>
+      <text x="546" y="318" class="tx">topics</text>
+      <text x="546" y="336" class="monom">ticker:NVDA …</text>
+      <path d="M728,198 L746,198" class="ar" marker-end="url(#hd-b1)"/>
+      <rect x="748" y="128" width="176" height="140" rx="12" class="b"/>
+      <text x="762" y="154" class="t14">Subscription filter</text>
+      <text x="762" y="178" class="tx">① topic subscribed?</text>
+      <text x="762" y="198" class="tx">② kind in kinds?</text>
+      <text x="762" y="218" class="tx">③ params pass?</text>
+      <text x="762" y="252" class="tx">→ one event per client</text>
+      <path d="M770,268 L770,302" class="ard" marker-end="url(#hdm-b1)"/>
+      <text x="780" y="300" class="ts">dropped · no run</text>
+      <path d="M924,198 L942,198" class="ar" marker-end="url(#hd-b1)"/>
+      <rect x="944" y="50" width="216" height="296" rx="12" class="brun"/>
+      <text x="958" y="76" class="t">Client agent</text>
+      <text x="958" y="94" class="tx">relate → research → analyze</text>
+      <rect x="956" y="108" width="192" height="50" rx="9" class="b2"/>
+      <text x="968" y="129" class="t14">Digest</text>
+      <text x="968" y="147" class="tx">result in line</text>
+      <rect x="956" y="166" width="192" height="50" rx="9" class="ba"/>
+      <text x="968" y="187" class="t14 ta">Pre-brief</text>
+      <text x="968" y="205" class="tx">report due tomorrow</text>
+      <rect x="956" y="224" width="192" height="50" rx="9" class="bok"/>
+      <text x="968" y="245" class="t14 tok">Report</text>
+      <text x="968" y="263" class="tx">beat or miss explained</text>
+      <rect x="956" y="282" width="192" height="50" rx="9" class="bal"/>
+      <text x="968" y="303" class="t14 tal">Alert</text>
+      <text x="968" y="321" class="tx">guidance cut or withdrawn</text>
+      <path d="M1052,346 L1052,384 L904,384 L904,272" class="arp" marker-end="url(#hdp-b1)"/>
+      <text x="532" y="412" class="t14 tpc">The agent subscribes with update_subscriptions</text>
+      <text x="532" y="434" class="mono">{detector:&quot;earnings&quot;, topic:&quot;ticker:NVDA&quot;,</text>
+      <text x="532" y="452" class="mono"> params:{days_ahead:1, min_surprise_pct:5}}</text>
+      <text x="20" y="412" class="tl">CADENCE · LATENCY</text>
+      <text x="20" y="434" class="ts">Calendar daily · results ≤ 2 min after release</text>
+      </svg>
+  </div><figcaption>The consensus is frozen just before the release, so the surprise is measured against what the market actually expected, not against estimates revised afterwards.</figcaption></figure>
+  <div class="grid two">
+    <div class="card"><h3>Inputs</h3><ul><li><b>Earnings calendar</b>: confirmed report dates and whether before or after market</li><li><b>Consensus estimates</b>: EPS, revenue and key segment figures from an estimates vendor</li><li><b>Results releases</b>: press releases and exchange filings, parsed</li><li><b>Guidance</b>: the company's own outlook ranges</li><li><b>Estimate revisions</b>: daily changes to consensus</li></ul></div>
+    <div class="card"><h3>How it detects</h3><ul><li><b>Normalise:</b> map each release to its issuer and fiscal period; compare on the same basis as consensus (adjusted or reported); adjust per-share figures for splits.</li><li><b>Baseline:</b> freeze the consensus just before the release; keep the history of past surprises, so a surprise can be expressed in σ.</li><li><b>Detect:</b> a pre-event signal for confirmed dates; <code>surprise % = (actual − consensus) ÷ |consensus|</code> for EPS and revenue; guidance raised, cut, withdrawn or started; consensus for next year's EPS moving more than 5% in 30 days.</li><li><b>Debounce:</b> one result signal per release; one guidance signal per statement; revision trends at most monthly per issuer.</li></ul></div>
+  </div>
+  <h4 class="sub">Signal kinds</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kind</th><th>Fires when</th><th>severity_hint</th><th>Measurements reported</th><th>Accepts params</th></tr></thead>
+    <tbody>
+      <tr><td><code>earnings.upcoming</code> <span class="tag ok">default</span></td><td class="m">A confirmed report is due within <code>days_ahead</code></td><td class="m">7</td><td class="m"><code>report_date, timing, consensus_eps, implied_move_pct</code></td><td class="m"><code>days_ahead</code></td></tr>
+      <tr><td><code>earnings.result</code> <span class="tag ok">default</span></td><td class="m">Results are published</td><td class="m">6 · 3 if |surprise_z| ≥ 2</td><td class="m"><code>eps_surprise_pct, revenue_surprise_pct, surprise_z</code></td><td class="m"><code>min_surprise_pct</code></td></tr>
+      <tr><td><code>earnings.guidance</code> <span class="tag ok">default</span></td><td class="m">The company changes its outlook</td><td class="m">4 · 2 if withdrawn</td><td class="m"><code>direction, metric, vs_consensus_pct</code></td><td class="m"><code>directions</code></td></tr>
+    </tbody>
+  </table></div>
+  <h4 class="sub">Subscription</h4>
+  <p class="body">Topics: <code>ticker:{symbol}</code>, <code>issuer:{id}</code>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Applies to</th><th>Checks</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>days_ahead</code></td><td class="m">1 · 5</td><td class="m">1</td><td class="m"><code>earnings.upcoming</code></td><td class="m">days until <code>report_date</code></td><td class="m">How early the pre-event signal comes</td></tr>
+      <tr><td><code>min_surprise_pct</code></td><td class="m">number ≥ 0</td><td class="m">5</td><td class="m"><code>earnings.result</code></td><td class="m">the larger of <code>|eps_surprise_pct|</code> and <code>|revenue_surprise_pct|</code></td><td class="m">Smallest surprise to receive</td></tr>
+      <tr><td><code>directions</code></td><td class="m">raise · cut · withdraw · initiate</td><td class="m">cut, withdraw, raise</td><td class="m"><code>earnings.guidance</code></td><td class="m"><code>direction</code></td><td class="m">Which outlook changes to receive</td></tr>
+    </tbody>
+  </table></div>
+<pre>update_subscriptions(changes=[
+  {op: "add", detector: "earnings", topic: "ticker:NVDA",
+   params: {days_ahead: 1, min_surprise_pct: 5},
+   reason: "NVDA is 18% of the portfolio"}
+])</pre>
+  <p class="body"><b>Onboarding derives:</b> every stock holding of at least 1% of the portfolio; ETF constituents of at least 2% after look-through; names from the client's interests with <code>kinds: ["earnings.result"]</code> only.</p>
+  <h4 class="sub">What the agent may do</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Situation</th><th>Typical response</th><th>Outcome</th></tr></thead>
+    <tbody>
+      <tr><td>Report due tomorrow on a large holding</td><td class="m">Pre-brief: what the market expects, the usual size of the move on results day, what to watch. No action proposed.</td><td class="m"><span class="tag ok">report</span></td></tr>
+      <tr><td>Result in line</td><td class="m">Nothing, or one digest line</td><td class="m"><span class="tag n">silent</span></td></tr>
+      <tr><td>Big miss on a concentrated holding</td><td class="m">Explain what changed and whether the reason for holding it still stands. A1 usually fires in the same batch; the agent sends one message.</td><td class="m"><span class="tag ok">report</span></td></tr>
+      <tr><td>Guidance cut or withdrawn</td><td class="m">Alert with the exposure; research the filing; involve the advisor if the position is large</td><td class="m"><span class="tag al">alert</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note"><b>Later:</b> <code>earnings.revision_trend</code>.</p>
+</section>
+
+<!-- ======================= B3 ======================= -->
+<section id="b3" class="detector">
+  <h2><span class="k">B3</span>Corporate actions detector</h2>
+  <div class="meta"><span class="tag a">shared</span><span class="tag n">detector_id: corporate_actions</span><span class="tag n">custodian feed every 15 min</span><span class="tag al">has mandatory kinds</span></div>
+  <p class="section-intro">Watches things a company does to its securities: dividends, splits, rights issues, tender offers, mergers, bond calls. Some of these are <b>elective</b>: the client must choose an option before a deadline, or a default option is applied that can cost money. The source is the custodian's corporate-action feed, which is authoritative.</p>
+  <figure><div class="scroll">
+      <svg viewBox="0 0 1180 470" role="img" aria-label="B3 · Corporate actions detector: inputs Custodian notices, Issuer news, Dividend history, Market calendar; steps Normalise, Baseline, Detect, Track stages; emits signal kinds ca.announced, ca.dividend_change, ca.election_open; the subscription filter checks topic, kind and params, drops non-matches, and wakes the client agent, which may respond: Finding, Report, Action needed, Follow-ups. The agent subscribes with update_subscriptions.">
+      <defs>
+      <marker id="hd-b3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+      <marker id="hdm-b3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdm"/></marker>
+      <marker id="hdp-b3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdp"/></marker>
+      </defs>
+      <text x="20" y="32" class="tl">INPUT</text>
+      <text x="222" y="32" class="tl">DETECTOR</text>
+      <text x="532" y="32" class="tl">SIGNAL</text>
+      <text x="748" y="32" class="tl">ROUTE</text>
+      <text x="944" y="32" class="tl">AGENT</text>
+      <rect x="20" y="50" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="76" class="t14">Custodian notices</text>
+      <text x="34" y="96" class="tx">MT564 / seev messages</text>
+      <path d="M200,81 L220,81" class="arm" marker-end="url(#hdm-b3)"/>
+      <rect x="20" y="124" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="150" class="t14">Issuer news</text>
+      <text x="34" y="170" class="tx">earlier, unofficial</text>
+      <path d="M200,155 L220,155" class="arm" marker-end="url(#hdm-b3)"/>
+      <rect x="20" y="198" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="224" class="t14">Dividend history</text>
+      <text x="34" y="244" class="tx">last payments, policy</text>
+      <path d="M200,229 L220,229" class="arm" marker-end="url(#hdm-b3)"/>
+      <rect x="20" y="272" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="298" class="t14">Market calendar</text>
+      <text x="34" y="318" class="tx">business days, holidays</text>
+      <path d="M200,303 L220,303" class="arm" marker-end="url(#hdm-b3)"/>
+      <rect x="222" y="50" width="290" height="296" rx="14" class="bh"/>
+      <text x="238" y="80" class="tp">B3 · Corporate actions</text>
+      <rect x="238" y="98" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="120" class="t14">1 · Normalise</text>
+      <text x="252" y="139" class="tx">ISIN; apply replacements; type</text>
+      <rect x="238" y="158" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="180" class="t14">2 · Baseline</text>
+      <text x="252" y="199" class="tx">dividend history per issuer</text>
+      <rect x="238" y="218" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="240" class="t14">3 · Detect</text>
+      <text x="252" y="259" class="tx">new event, dividend change, election</text>
+      <rect x="238" y="278" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="300" class="t14">4 · Track stages</text>
+      <text x="252" y="319" class="tx">announced → open → completed</text>
+      <path d="M512,198 L530,198" class="ar" marker-end="url(#hd-b3)"/>
+      <rect x="532" y="50" width="196" height="296" rx="12" class="ba"/>
+      <text x="546" y="76" class="t ta">signal</text>
+      <text x="546" y="98" class="tx">kind</text>
+      <text x="546" y="118" class="mono">ca.announced</text>
+      <text x="546" y="137" class="mono">ca.dividend_change</text>
+      <text x="546" y="156" class="mono">ca.election_open</text>
+      <text x="546" y="252" class="tx">magnitude</text>
+      <text x="546" y="270" class="mono">event_type, dates</text>
+      <text x="546" y="288" class="mono">change_pct, options</text>
+      <text x="546" y="318" class="tx">topics</text>
+      <text x="546" y="336" class="monom">ticker:0700.HK …</text>
+      <path d="M728,198 L746,198" class="ar" marker-end="url(#hd-b3)"/>
+      <rect x="748" y="128" width="176" height="140" rx="12" class="b"/>
+      <text x="762" y="154" class="t14">Subscription filter</text>
+      <text x="762" y="178" class="tx">① topic subscribed?</text>
+      <text x="762" y="198" class="tx">② kind in kinds?</text>
+      <text x="762" y="218" class="tx">③ params pass?</text>
+      <text x="762" y="252" class="tx">→ one event per client</text>
+      <path d="M770,268 L770,302" class="ard" marker-end="url(#hdm-b3)"/>
+      <text x="780" y="300" class="ts">dropped · no run</text>
+      <path d="M924,198 L942,198" class="ar" marker-end="url(#hd-b3)"/>
+      <rect x="944" y="50" width="216" height="296" rx="12" class="brun"/>
+      <text x="958" y="76" class="t">Client agent</text>
+      <text x="958" y="94" class="tx">relate → research → analyze</text>
+      <rect x="956" y="108" width="192" height="50" rx="9" class="b2"/>
+      <text x="968" y="129" class="t14">Finding</text>
+      <text x="968" y="147" class="tx">split: no value change</text>
+      <rect x="956" y="166" width="192" height="50" rx="9" class="bok"/>
+      <text x="968" y="187" class="t14 tok">Report</text>
+      <text x="968" y="205" class="tx">income impact of a cut</text>
+      <rect x="956" y="224" width="192" height="50" rx="9" class="bal"/>
+      <text x="968" y="245" class="t14 tal">Action needed</text>
+      <text x="968" y="263" class="tx">options and deadline</text>
+      <rect x="956" y="282" width="192" height="50" rx="9" class="ba"/>
+      <text x="968" y="303" class="t14 ta">Follow-ups</text>
+      <text x="968" y="321" class="tx">deadline −5 and −1 days</text>
+      <path d="M1052,346 L1052,384 L904,384 L904,272" class="arp" marker-end="url(#hdp-b3)"/>
+      <text x="532" y="412" class="t14 tpc">The agent subscribes with update_subscriptions</text>
+      <text x="532" y="434" class="mono">{detector:&quot;corporate_actions&quot;, topic:&quot;ticker:0700.HK&quot;,</text>
+      <text x="532" y="452" class="mono"> params:{direction:&quot;cut&quot;, min_change_pct:10}}</text>
+      <text x="20" y="412" class="tl">CADENCE · LATENCY</text>
+      <text x="20" y="434" class="ts">Custodian feed every 15 min · deadlines tracked daily</text>
+      </svg>
+  </div><figcaption>An elective event opens a deadline. The agent sets its own follow-ups before it and prepares the election, which the client approves like an order.</figcaption></figure>
+  <div class="grid two">
+    <div class="card"><h3>Inputs</h3><ul><li><b>Custodian corporate-action notices</b>: ISO 15022 MT564 or ISO 20022 seev messages, with replacements</li><li><b>Issuer announcements</b>: often earlier than the custodian, but unofficial</li><li><b>Dividend history</b> per issuer</li><li><b>Market calendars</b>: business days for deadlines</li></ul></div>
+    <div class="card"><h3>How it detects</h3><ul><li><b>Normalise:</b> map events to ISIN; apply replacement notices; classify as mandatory, voluntary (elective) or mandatory with options.</li><li><b>Baseline:</b> the last comparable dividends and the stated policy per issuer.</li><li><b>Detect:</b> a new event; a dividend cut, suspension, raise or special dividend compared with the last comparable payment; an election window opening, with options, the default option and the deadline; completion.</li><li><b>Debounce:</b> one signal per event per stage; replacement notices update the same story.</li></ul></div>
+  </div>
+  <h4 class="sub">Signal kinds</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kind</th><th>Fires when</th><th>severity_hint</th><th>Measurements reported</th><th>Accepts params</th></tr></thead>
+    <tbody>
+      <tr><td><code>ca.announced</code> <span class="tag ok">default</span></td><td class="m">A new corporate action is announced (split, merger, spin-off, bond call…)</td><td class="m">6</td><td class="m"><code>event_type, effective_date, terms</code></td><td class="m"><code>event_types</code></td></tr>
+      <tr><td><code>ca.dividend_change</code> <span class="tag ok">default</span></td><td class="m">A dividend differs from the last comparable payment</td><td class="m">4 cut or suspension · 7 raise or special</td><td class="m"><code>change_pct, type, pay_date</code></td><td class="m"><code>direction</code>, <code>min_change_pct</code></td></tr>
+      <tr><td><code>ca.election_open</code> <span class="tag al">mandatory</span> <span class="tag ok">default</span></td><td class="m">An elective event opens (rights issue, tender offer, scrip dividend…)</td><td class="m">2 · <code>must_acknowledge</code></td><td class="m"><code>options, default_option, deadline</code></td><td class="m"><span class="tag n">none</span> always passes</td></tr>
+    </tbody>
+  </table></div>
+  <h4 class="sub">Subscription</h4>
+  <p class="body">Topics: <code>isin:{isin}</code>, <code>ticker:{symbol}</code>, <code>issuer:{id}</code>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Applies to</th><th>Checks</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>event_types</code></td><td class="m">list of event types</td><td class="m">all</td><td class="m"><code>ca.announced</code></td><td class="m"><code>event_type</code></td><td class="m">e.g. only mergers and bond calls</td></tr>
+      <tr><td><code>direction</code></td><td class="m">cut · raise · both</td><td class="m">both</td><td class="m"><code>ca.dividend_change</code></td><td class="m">sign of <code>change_pct</code></td><td class="m">Cuts only, raises only, or both</td></tr>
+      <tr><td><code>min_change_pct</code></td><td class="m">number ≥ 0</td><td class="m">10</td><td class="m"><code>ca.dividend_change</code></td><td class="m"><code>|change_pct|</code></td><td class="m">Smallest dividend change</td></tr>
+    </tbody>
+  </table></div>
+<pre>update_subscriptions(changes=[
+  {op: "add", detector: "corporate_actions", topic: "ticker:0700.HK",
+   params: {direction: "cut", min_change_pct: 10},
+   reason: "client relies on dividends for income"}
+])
+<span class="c"># the reconciler adds ca.election_open (mandatory) for every holding</span></pre>
+  <p class="body"><b>Onboarding derives:</b> every holding, since every holder is entitled to corporate actions; clients who rely on income get <code>direction: "both"</code>.</p>
+  <h4 class="sub">What the agent may do</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Situation</th><th>Typical response</th><th>Outcome</th></tr></thead>
+    <tbody>
+      <tr><td>Split or other mechanical event</td><td class="m">Finding: explain that the value of the holding doesn't change</td><td class="m"><span class="tag n">finding</span></td></tr>
+      <tr><td>Dividend cut on an income holding</td><td class="m">Report the effect on yearly income</td><td class="m"><span class="tag ok">report</span></td></tr>
+      <tr><td>Election opens (rights issue, tender offer, scrip dividend)</td><td class="m">Alert (must be acknowledged): the options, the cost of each, and what happens if the client does nothing. Set follow-ups 5 and 1 business days before the deadline. In the MVP the client instructs through the existing channel (app or relationship manager); the agent does not submit elections.</td><td class="m"><span class="tag al">alert</span> + <span class="tag a">timer</span></td></tr>
+      <tr><td>Merger or takeover announced</td><td class="m">Report the terms and timeline, and whether to hold until completion</td><td class="m"><span class="tag ok">report</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note"><b>Later:</b> <code>ca.completed</code>, and the deferred <code>submit_election</code> tool once the custodian can accept elections by API.</p>
+</section>
+
+<!-- ======================= C1 ======================= -->
+<section id="c1" class="detector">
+  <h2><span class="k">C1</span>News stories detector</h2>
+  <div class="meta"><span class="tag a">shared</span><span class="tag n">detector_id: news</span><span class="tag n">streaming</span><span class="tag n">article → inbox p95 ≤ 60 s</span></div>
+  <p class="section-intro">Turns the flow of news into <b>stories</b>. It tags each article with the companies, sectors, places and themes it is about, groups articles on the same event into one story, and scores how new and how important the story is. This replaces the tagging the subscription filter did on raw news in the overall design.</p>
+  <figure><div class="scroll">
+      <svg viewBox="0 0 1180 470" role="img" aria-label="C1 · News stories detector: inputs Newswires, Local news, Entity master, Source ratings; steps Tag, Cluster, Score, Debounce; emits signal kinds news.story_new; the subscription filter checks topic, kind and params, drops non-matches, and wakes the client agent, which may respond: Silent, Wait, Report, Finding. The agent subscribes with update_subscriptions.">
+      <defs>
+      <marker id="hd-c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+      <marker id="hdm-c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdm"/></marker>
+      <marker id="hdp-c1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdp"/></marker>
+      </defs>
+      <text x="20" y="32" class="tl">INPUT</text>
+      <text x="222" y="32" class="tl">DETECTOR</text>
+      <text x="532" y="32" class="tl">SIGNAL</text>
+      <text x="748" y="32" class="tl">ROUTE</text>
+      <text x="944" y="32" class="tl">AGENT</text>
+      <rect x="20" y="50" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="76" class="t14">Newswires</text>
+      <text x="34" y="96" class="tx">licensed, real time</text>
+      <path d="M200,81 L220,81" class="arm" marker-end="url(#hdm-c1)"/>
+      <rect x="20" y="124" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="150" class="t14">Local news</text>
+      <text x="34" y="170" class="tx">regional, translated</text>
+      <path d="M200,155 L220,155" class="arm" marker-end="url(#hdm-c1)"/>
+      <rect x="20" y="198" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="224" class="t14">Entity master</text>
+      <text x="34" y="244" class="tx">names → issuers</text>
+      <path d="M200,229 L220,229" class="arm" marker-end="url(#hdm-c1)"/>
+      <rect x="20" y="272" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="298" class="t14">Source ratings</text>
+      <text x="34" y="318" class="tx">credibility per source</text>
+      <path d="M200,303 L220,303" class="arm" marker-end="url(#hdm-c1)"/>
+      <rect x="222" y="50" width="290" height="296" rx="14" class="bh"/>
+      <text x="238" y="80" class="tp">C1 · News stories</text>
+      <rect x="238" y="98" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="120" class="t14">1 · Tag</text>
+      <text x="252" y="139" class="tx">entities, sector, region, theme</text>
+      <rect x="238" y="158" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="180" class="t14">2 · Cluster</text>
+      <text x="252" y="199" class="tx">group articles into stories</text>
+      <rect x="238" y="218" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="240" class="t14">3 · Score</text>
+      <text x="252" y="259" class="tx">novelty, importance, sentiment</text>
+      <rect x="238" y="278" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="300" class="t14">4 · Debounce</text>
+      <text x="252" y="319" class="tx">new story; update on new band</text>
+      <path d="M512,198 L530,198" class="ar" marker-end="url(#hd-c1)"/>
+      <rect x="532" y="50" width="196" height="296" rx="12" class="ba"/>
+      <text x="546" y="76" class="t ta">signal</text>
+      <text x="546" y="98" class="tx">kind</text>
+      <text x="546" y="118" class="mono">news.story_new</text>
+      <text x="546" y="252" class="tx">magnitude</text>
+      <text x="546" y="270" class="mono">importance, sentiment</text>
+      <text x="546" y="288" class="mono">source_count</text>
+      <text x="546" y="318" class="tx">topics</text>
+      <text x="546" y="336" class="monom">issuer:… · sector:…</text>
+      <path d="M728,198 L746,198" class="ar" marker-end="url(#hd-c1)"/>
+      <rect x="748" y="128" width="176" height="140" rx="12" class="b"/>
+      <text x="762" y="154" class="t14">Subscription filter</text>
+      <text x="762" y="178" class="tx">① topic subscribed?</text>
+      <text x="762" y="198" class="tx">② kind in kinds?</text>
+      <text x="762" y="218" class="tx">③ params pass?</text>
+      <text x="762" y="252" class="tx">→ one event per client</text>
+      <path d="M770,268 L770,302" class="ard" marker-end="url(#hdm-c1)"/>
+      <text x="780" y="300" class="ts">dropped · no run</text>
+      <path d="M924,198 L942,198" class="ar" marker-end="url(#hd-c1)"/>
+      <rect x="944" y="50" width="216" height="296" rx="12" class="brun"/>
+      <text x="958" y="76" class="t">Client agent</text>
+      <text x="958" y="94" class="tx">relate → research → analyze</text>
+      <rect x="956" y="108" width="192" height="50" rx="9" class="b2"/>
+      <text x="968" y="129" class="t14">Silent</text>
+      <text x="968" y="147" class="tx">minor story, small stake</text>
+      <rect x="956" y="166" width="192" height="50" rx="9" class="ba"/>
+      <text x="968" y="187" class="t14 ta">Wait</text>
+      <text x="968" y="205" class="tx">one source: check later</text>
+      <rect x="956" y="224" width="192" height="50" rx="9" class="bok"/>
+      <text x="968" y="245" class="t14 tok">Report</text>
+      <text x="968" y="263" class="tx">probe into a holding</text>
+      <rect x="956" y="282" width="192" height="50" rx="9" class="b"/>
+      <text x="968" y="303" class="t14">Finding</text>
+      <text x="968" y="321" class="tx">theme the client follows</text>
+      <path d="M1052,346 L1052,384 L904,384 L904,272" class="arp" marker-end="url(#hdp-c1)"/>
+      <text x="532" y="412" class="t14 tpc">The agent subscribes with update_subscriptions</text>
+      <text x="532" y="434" class="mono">{detector:&quot;news&quot;, topic:&quot;issuer:nvidia&quot;,</text>
+      <text x="532" y="452" class="mono"> params:{min_importance:3}}</text>
+      <text x="20" y="412" class="tl">CADENCE · LATENCY</text>
+      <text x="20" y="434" class="ts">Streaming · article → inbox p95 ≤ 60 s</text>
+      </svg>
+  </div><figcaption>Thirty headlines about the same event become one story and one signal. Later articles only send an update when the story becomes more important or adds new facts.</figcaption></figure>
+  <div class="grid two">
+    <div class="card"><h3>Inputs</h3><ul><li><b>Licensed newswires</b>, real time</li><li><b>Regional and local-language news</b>, with headline and summary translated</li><li><b>Entity master</b>: company names, brands and people → issuer IDs</li><li><b>Source credibility ratings</b></li></ul></div>
+    <div class="card"><h3>How it detects</h3><ul><li><b>Tag:</b> a model recognises the entities in each article and links them to issuers, sectors, regions and themes, once per article.</li><li><b>Cluster:</b> group articles about the same event (similar content and shared entities within 48 hours) into a story.</li><li><b>Score:</b> novelty (is this a new story?), importance 1–5 (event type × source credibility × how central the entity is), sentiment, and news volume against each entity's normal level.</li><li><b>Debounce:</b> one signal per new story; an update only when importance moves up a band or the story adds new facts; syndicated copies are dropped.</li></ul></div>
+  </div>
+  <h4 class="sub">Signal kinds</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kind</th><th>Fires when</th><th>severity_hint</th><th>Measurements reported</th><th>Accepts params</th></tr></thead>
+    <tbody>
+      <tr><td><code>news.story_new</code> <span class="tag ok">default</span></td><td class="m">A new story about a subscribed entity or theme</td><td class="m">7 · 5 · 3 by importance</td><td class="m"><code>importance, sentiment, event_type, source_count</code></td><td class="m"><code>min_importance</code>, <code>sentiment</code></td></tr>
+    </tbody>
+  </table></div>
+  <h4 class="sub">Subscription</h4>
+  <p class="body">Topics: <code>issuer:{id}</code>, <code>ticker:{symbol}</code>, <code>sector:{name}</code>, <code>region:{code}</code>, <code>theme:{slug}</code>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Applies to</th><th>Checks</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>min_importance</code></td><td class="m">1–5</td><td class="m">3</td><td class="m"><code>news.story_new</code>, <code>news.story_update</code></td><td class="m"><code>importance</code></td><td class="m">Smallest importance to receive</td></tr>
+      <tr><td><code>sentiment</code></td><td class="m">any · negative · positive</td><td class="m">any</td><td class="m"><code>news.story_new</code></td><td class="m"><code>sentiment</code></td><td class="m">e.g. only negative stories for a protective watch</td></tr>
+    </tbody>
+  </table></div>
+<pre>update_subscriptions(changes=[
+  {op: "add", detector: "news", topic: "issuer:nvidia",
+   params: {min_importance: 3}, reason: "NVDA is 18% of the portfolio"},
+  {op: "add", detector: "news", topic: "sector:semiconductors",
+   params: {min_importance: 4}, reason: "31% of equities in semiconductors"}
+])</pre>
+  <p class="body"><b>Onboarding derives:</b> every holding's issuer at <code>min_importance: 3</code>; sectors of at least 15% (look-through) at 4; regions of at least 25% at 4; themes from the client's interests at 3.</p>
+  <h4 class="sub">What the agent may do</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Situation</th><th>Typical response</th><th>Outcome</th></tr></thead>
+    <tbody>
+      <tr><td>Minor story about a small holding</td><td class="m">Nothing, or a digest line</td><td class="m"><span class="tag n">silent</span></td></tr>
+      <tr><td>Important story (e.g. a regulator investigation) about a large holding</td><td class="m">Research the facts and report the possible impact</td><td class="m"><span class="tag ok">report</span></td></tr>
+      <tr><td>Single low-credibility source</td><td class="m">Wait: set a follow-up to check whether it is confirmed</td><td class="m"><span class="tag a">timer</span></td></tr>
+      <tr><td>Story on a theme the client follows</td><td class="m">Finding; occasionally a report if it is big</td><td class="m"><span class="tag n">finding</span></td></tr>
+      <tr><td>Story that seems to call for a trade</td><td class="m">News text is untrusted. A trade suggested by an article is never proposed on the strength of the article alone, and any order derived from it goes through the classifier.</td><td class="m"><span class="tag n">silent</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note"><b>Later:</b> <code>news.story_update</code> and <code>news.volume_spike</code>. In the MVP an escalating story reaches the agent through A1 (the price reacts) and the agent's own <code>search_news</code>.</p>
+</section>
+
+<!-- ======================= D1 ======================= -->
+<section id="d1" class="detector">
+  <h2><span class="k">D1</span>Concentration detector</h2>
+  <div class="meta"><span class="tag p">client</span><span class="tag n">detector_id: drift</span><span class="tag n">on fills and price signals</span><span class="tag n">hourly at most</span></div>
+  <p class="section-intro">In an all-equity portfolio, asset-class drift doesn't apply: everything is equity. The main portfolio-level risk is <b>concentration</b> in one stock, sector or country. This detector compares the client's exposures, looking through ETFs, with the bank's limits and any limits specific to the client.</p>
+  <figure><div class="scroll">
+      <svg viewBox="0 0 1180 470" role="img" aria-label="D1 · Concentration detector: inputs Positions, ETF look-through, Classification, Limits; steps Normalise, Look through, Detect, Debounce; emits signal kinds drift.concentration; the subscription filter checks topic, kind and params, drops non-matches, and wakes the client agent, which may respond: Finding, Report, Propose, Explain. The agent subscribes with update_subscriptions.">
+      <defs>
+      <marker id="hd-d1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+      <marker id="hdm-d1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdm"/></marker>
+      <marker id="hdp-d1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdp"/></marker>
+      </defs>
+      <text x="20" y="32" class="tl">INPUT</text>
+      <text x="222" y="32" class="tl">DETECTOR</text>
+      <text x="532" y="32" class="tl">SIGNAL</text>
+      <text x="748" y="32" class="tl">ROUTE</text>
+      <text x="944" y="32" class="tl">AGENT</text>
+      <rect x="20" y="50" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="76" class="t14">Positions</text>
+      <text x="34" y="96" class="tx">portfolio system</text>
+      <path d="M200,81 L220,81" class="arm" marker-end="url(#hdm-d1)"/>
+      <rect x="20" y="124" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="150" class="t14">ETF look-through</text>
+      <text x="34" y="170" class="tx">constituents, sectors</text>
+      <path d="M200,155 L220,155" class="arm" marker-end="url(#hdm-d1)"/>
+      <rect x="20" y="198" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="224" class="t14">Classification</text>
+      <text x="34" y="244" class="tx">sector, country</text>
+      <path d="M200,229 L220,229" class="arm" marker-end="url(#hdm-d1)"/>
+      <rect x="20" y="272" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="298" class="t14">Limits</text>
+      <text x="34" y="318" class="tx">bank + client limits</text>
+      <path d="M200,303 L220,303" class="arm" marker-end="url(#hdm-d1)"/>
+      <rect x="222" y="50" width="290" height="296" rx="14" class="bh"/>
+      <text x="238" y="80" class="tp">D1 · Concentration</text>
+      <rect x="238" y="98" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="120" class="t14">1 · Normalise</text>
+      <text x="252" y="139" class="tx">value in reporting currency</text>
+      <rect x="238" y="158" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="180" class="t14">2 · Look through</text>
+      <text x="252" y="199" class="tx">ETFs → stocks, sectors</text>
+      <rect x="238" y="218" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="240" class="t14">3 · Detect</text>
+      <text x="252" y="259" class="tx">issuer, sector, country limits</text>
+      <rect x="238" y="278" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="300" class="t14">4 · Debounce</text>
+      <text x="252" y="319" class="tx">re-arm 1pt below the limit</text>
+      <path d="M512,198 L530,198" class="ar" marker-end="url(#hd-d1)"/>
+      <rect x="532" y="50" width="196" height="296" rx="12" class="ba"/>
+      <text x="546" y="76" class="t ta">signal</text>
+      <text x="546" y="98" class="tx">kind</text>
+      <text x="546" y="118" class="mono">drift.concentration</text>
+      <text x="546" y="252" class="tx">magnitude</text>
+      <text x="546" y="270" class="mono">actual_pct, limit_pct</text>
+      <text x="546" y="288" class="mono">dimension, name</text>
+      <text x="546" y="318" class="tx">topics</text>
+      <text x="546" y="336" class="monom">client:drift</text>
+      <path d="M728,198 L746,198" class="ar" marker-end="url(#hd-d1)"/>
+      <rect x="748" y="128" width="176" height="140" rx="12" class="b"/>
+      <text x="762" y="154" class="t14">Params check</text>
+      <text x="762" y="178" class="tx">① client subscribed?</text>
+      <text x="762" y="198" class="tx">② kind in kinds?</text>
+      <text x="762" y="218" class="tx">③ params pass?</text>
+      <text x="762" y="252" class="tx">→ this client&#x27;s inbox</text>
+      <path d="M770,268 L770,302" class="ard" marker-end="url(#hdm-d1)"/>
+      <text x="780" y="300" class="ts">dropped · no run</text>
+      <path d="M924,198 L942,198" class="ar" marker-end="url(#hd-d1)"/>
+      <rect x="944" y="50" width="216" height="296" rx="12" class="brun"/>
+      <text x="958" y="76" class="t">Client agent</text>
+      <text x="958" y="94" class="tx">relate → research → analyze</text>
+      <rect x="956" y="108" width="192" height="50" rx="9" class="b2"/>
+      <text x="968" y="129" class="t14">Finding</text>
+      <text x="968" y="147" class="tx">just over after a rally</text>
+      <rect x="956" y="166" width="192" height="50" rx="9" class="bok"/>
+      <text x="968" y="187" class="t14 tok">Report</text>
+      <text x="968" y="205" class="tx">concentration and risk</text>
+      <rect x="956" y="224" width="192" height="50" rx="9" class="ba"/>
+      <text x="968" y="245" class="t14 ta">Propose</text>
+      <text x="968" y="263" class="tx">trim (deferred)</text>
+      <rect x="956" y="282" width="192" height="50" rx="9" class="b"/>
+      <text x="968" y="303" class="t14">Explain</text>
+      <text x="968" y="321" class="tx">built up from a gain</text>
+      <path d="M1052,346 L1052,384 L904,384 L904,272" class="arp" marker-end="url(#hdp-d1)"/>
+      <text x="532" y="412" class="t14 tpc">The agent subscribes with update_subscriptions</text>
+      <text x="532" y="434" class="mono">{detector:&quot;drift&quot;, topic:&quot;client:drift&quot;,</text>
+      <text x="532" y="452" class="mono"> params:{dimensions:[&quot;issuer&quot;,&quot;sector&quot;]}}</text>
+      <text x="20" y="412" class="tl">CADENCE · LATENCY</text>
+      <text x="20" y="434" class="ts">On fills and price signals · hourly at most · at close</text>
+      </svg>
+  </div><figcaption>It re-runs after fills and after A1 price signals on the client's holdings, at most hourly, plus once at the close.</figcaption></figure>
+  <div class="grid two">
+    <div class="card"><h3>Inputs</h3><ul><li><b>Positions and valuations</b> from the portfolio system</li><li><b>ETF look-through</b>: constituents and their weights</li><li><b>Classification</b>: sector and country for every stock</li><li><b>Concentration limits</b>: bank policy (e.g. 10% per issuer, 30% per sector) plus any client-specific limits</li></ul></div>
+    <div class="card"><h3>How it detects</h3><ul><li><b>Normalise:</b> value every position in the reporting currency.</li><li><b>Look through:</b> break ETFs into their constituents, so a direct NVDA holding plus a semiconductor ETF adds up correctly.</li><li><b>Detect:</b> an issuer, sector or country above its limit.</li><li><b>Debounce:</b> re-arm only when the weight is back 1 point below the limit; signal again if it grows by another 5 points.</li></ul></div>
+  </div>
+  <h4 class="sub">Signal kinds</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kind</th><th>Fires when</th><th>severity_hint</th><th>Measurements reported</th><th>Accepts params</th></tr></thead>
+    <tbody>
+      <tr><td><code>drift.concentration</code> <span class="tag ok">default</span></td><td class="m">An issuer, sector, country or currency exceeds its limit</td><td class="m">4</td><td class="m"><code>dimension, name, actual_pct, limit_pct</code></td><td class="m"><code>dimensions</code></td></tr>
+    </tbody>
+  </table></div>
+  <h4 class="sub">Subscription</h4>
+  <p class="body">Topic: <code>client:drift</code>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Applies to</th><th>Checks</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>dimensions</code></td><td class="m">issuer · sector · country · currency</td><td class="m">all</td><td class="m"><code>drift.concentration</code></td><td class="m"><code>dimension</code></td><td class="m">Which concentrations to watch</td></tr>
+    </tbody>
+  </table></div>
+<pre>update_subscriptions(changes=[
+  {op: "update", detector: "drift", topic: "client:drift",
+   kinds: ["drift.concentration"], params: {dimensions: ["issuer", "sector"]},
+   reason: "client is comfortable with a single-country portfolio"}
+])</pre>
+  <p class="body"><b>Onboarding derives:</b> every client gets <code>client:drift</code> with <code>drift.concentration</code> and the bank's limits.</p>
+  <h4 class="sub">What the agent may do</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Situation</th><th>Typical response</th><th>Outcome</th></tr></thead>
+    <tbody>
+      <tr><td>Just over a limit after a rally</td><td class="m">Finding; mention at the next digest</td><td class="m"><span class="tag n">finding</span></td></tr>
+      <tr><td>Well over a limit</td><td class="m">Report the concentration and what it means for risk; a trim can be proposed with <code>place_order</code>, deferred to the client</td><td class="m"><span class="tag ok">report</span> + <span class="tag a">approval</span></td></tr>
+      <tr><td>Concentration built up from a big gain</td><td class="m">Explain the trade-off of trimming a winner</td><td class="m"><span class="tag ok">report</span></td></tr>
+      <tr><td>Limit breached during a sell-off (A6)</td><td class="m">Don't push trimming as urgent; explain</td><td class="m"><span class="tag n">finding</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note"><b>Later:</b> <code>drift.band_breach</code> and <code>drift.back_in_band</code>, when portfolios have target allocations across asset classes.</p>
+</section>
+
+<!-- ======================= D6 ======================= -->
+<section id="d6" class="detector">
+  <h2><span class="k">D6</span>Account activity detector</h2>
+  <div class="meta"><span class="tag p">client</span><span class="tag n">detector_id: activity</span><span class="tag n">real time</span><span class="tag n">fills ≤ 10 s</span></div>
+  <p class="section-intro">Reports what happened in the client's accounts: orders filled, partly filled, rejected or expired; money in and out; instructions received. It turns the overall design's portfolio webhook into proper signals, and it is how the agent learns that an action it got approved has completed.</p>
+  <figure><div class="scroll">
+      <svg viewBox="0 0 1180 470" role="img" aria-label="D6 · Account activity detector: inputs Order events, Cash movements, Deferral links, Accounts; steps Normalise, Link, Detect, Debounce; emits signal kinds account.order_filled, account.order_partial, account.order_failed, account.cash_movement; the subscription filter checks topic, kind and params, drops non-matches, and wakes the client agent, which may respond: Confirm, Report, Finding, Follow-up. The agent subscribes with update_subscriptions.">
+      <defs>
+      <marker id="hd-d6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+      <marker id="hdm-d6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdm"/></marker>
+      <marker id="hdp-d6" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdp"/></marker>
+      </defs>
+      <text x="20" y="32" class="tl">INPUT</text>
+      <text x="222" y="32" class="tl">DETECTOR</text>
+      <text x="532" y="32" class="tl">SIGNAL</text>
+      <text x="748" y="32" class="tl">ROUTE</text>
+      <text x="944" y="32" class="tl">AGENT</text>
+      <rect x="20" y="50" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="76" class="t14">Order events</text>
+      <text x="34" y="96" class="tx">fills, rejects, expiries</text>
+      <path d="M200,81 L220,81" class="arm" marker-end="url(#hdm-d6)"/>
+      <rect x="20" y="124" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="150" class="t14">Cash movements</text>
+      <text x="34" y="170" class="tx">in, out, dividends</text>
+      <path d="M200,155 L220,155" class="arm" marker-end="url(#hdm-d6)"/>
+      <rect x="20" y="198" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="224" class="t14">Deferral links</text>
+      <text x="34" y="244" class="tx">order → approval</text>
+      <path d="M200,229 L220,229" class="arm" marker-end="url(#hdm-d6)"/>
+      <rect x="20" y="272" width="180" height="62" rx="10" class="b"/>
+      <text x="34" y="298" class="t14">Accounts</text>
+      <text x="34" y="318" class="tx">account → client</text>
+      <path d="M200,303 L220,303" class="arm" marker-end="url(#hdm-d6)"/>
+      <rect x="222" y="50" width="290" height="296" rx="14" class="bh"/>
+      <text x="238" y="80" class="tp">D6 · Account activity</text>
+      <rect x="238" y="98" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="120" class="t14">1 · Normalise</text>
+      <text x="252" y="139" class="tx">account → client</text>
+      <rect x="238" y="158" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="180" class="t14">2 · Link</text>
+      <text x="252" y="199" class="tx">order → deferral → session</text>
+      <rect x="238" y="218" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="240" class="t14">3 · Detect</text>
+      <text x="252" y="259" class="tx">state change, large movement</text>
+      <rect x="238" y="278" width="258" height="52" rx="9" class="b"/>
+      <text x="252" y="300" class="t14">4 · Debounce</text>
+      <text x="252" y="319" class="tx">partial fills batched 15 min</text>
+      <path d="M512,198 L530,198" class="ar" marker-end="url(#hd-d6)"/>
+      <rect x="532" y="50" width="196" height="296" rx="12" class="ba"/>
+      <text x="546" y="76" class="t ta">signal</text>
+      <text x="546" y="98" class="tx">kind</text>
+      <text x="546" y="118" class="mono">account.order_filled</text>
+      <text x="546" y="137" class="mono">account.order_partial</text>
+      <text x="546" y="156" class="mono">account.order_failed</text>
+      <text x="546" y="175" class="mono">account.cash_movement</text>
+      <text x="546" y="252" class="tx">magnitude</text>
+      <text x="546" y="270" class="mono">order_id, qty, price</text>
+      <text x="546" y="288" class="mono">amount, direction</text>
+      <text x="546" y="318" class="tx">topics</text>
+      <text x="546" y="336" class="monom">client:activity</text>
+      <path d="M728,198 L746,198" class="ar" marker-end="url(#hd-d6)"/>
+      <rect x="748" y="128" width="176" height="140" rx="12" class="b"/>
+      <text x="762" y="154" class="t14">Params check</text>
+      <text x="762" y="178" class="tx">① client subscribed?</text>
+      <text x="762" y="198" class="tx">② kind in kinds?</text>
+      <text x="762" y="218" class="tx">③ params pass?</text>
+      <text x="762" y="252" class="tx">→ this client&#x27;s inbox</text>
+      <path d="M770,268 L770,302" class="ard" marker-end="url(#hdm-d6)"/>
+      <text x="780" y="300" class="ts">dropped · no run</text>
+      <path d="M924,198 L942,198" class="ar" marker-end="url(#hd-d6)"/>
+      <rect x="944" y="50" width="216" height="296" rx="12" class="brun"/>
+      <text x="958" y="76" class="t">Client agent</text>
+      <text x="958" y="94" class="tx">relate → research → analyze</text>
+      <rect x="956" y="108" width="192" height="50" rx="9" class="bok"/>
+      <text x="968" y="129" class="t14 tok">Confirm</text>
+      <text x="968" y="147" class="tx">approved order filled</text>
+      <rect x="956" y="166" width="192" height="50" rx="9" class="b"/>
+      <text x="968" y="187" class="t14">Report</text>
+      <text x="968" y="205" class="tx">order rejected: why</text>
+      <rect x="956" y="224" width="192" height="50" rx="9" class="b2"/>
+      <text x="968" y="245" class="t14">Finding</text>
+      <text x="968" y="263" class="tx">large withdrawal</text>
+      <rect x="956" y="282" width="192" height="50" rx="9" class="ba"/>
+      <text x="968" y="303" class="t14 ta">Follow-up</text>
+      <text x="968" y="321" class="tx">partial fill: check close</text>
+      <path d="M1052,346 L1052,384 L904,384 L904,272" class="arp" marker-end="url(#hdp-d6)"/>
+      <text x="532" y="412" class="t14 tpc">The agent subscribes with update_subscriptions</text>
+      <text x="532" y="434" class="mono">{detector:&quot;activity&quot;, topic:&quot;client:activity&quot;,</text>
+      <text x="532" y="452" class="mono"> params:{min_amount:50000}}</text>
+      <text x="20" y="412" class="tl">CADENCE · LATENCY</text>
+      <text x="20" y="434" class="ts">Real time · fills ≤ 10 s</text>
+      </svg>
+  </div><figcaption>Order events are linked to the deferral that approved them, so they resume the session that proposed the order, as in the overall design's trade-approval path.</figcaption></figure>
+  <div class="grid two">
+    <div class="card"><h3>Inputs</h3><ul><li><b>Order events</b>: fills, partial fills, rejections, expiries</li><li><b>Cash movements</b>: deposits, withdrawals, dividends received</li><li><b>Deferral links</b>: order ↔ deferral ↔ session</li></ul></div>
+    <div class="card"><h3>How it detects</h3><ul><li><b>Normalise:</b> map every event to account and client.</li><li><b>Link:</b> attach the deferral and session that approved an order, so the signal resumes that session.</li><li><b>Detect:</b> order state changes; cash movements above a threshold; activity far from the client's normal pattern.</li><li><b>Debounce:</b> one signal per state change; partial fills batched per order every 15 minutes.</li></ul></div>
+  </div>
+  <h4 class="sub">Signal kinds</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Kind</th><th>Fires when</th><th>severity_hint</th><th>Measurements reported</th><th>Accepts params</th></tr></thead>
+    <tbody>
+      <tr><td><code>account.order_filled</code> <span class="tag ok">default</span></td><td class="m">An order is fully filled</td><td class="m">5</td><td class="m"><code>order_id, qty, avg_price, deferral_id</code></td><td class="m"><span class="tag n">none</span> always passes</td></tr>
+      <tr><td><code>account.order_partial</code> <span class="tag ok">default</span></td><td class="m">An order is partly filled</td><td class="m">6</td><td class="m"><code>order_id, filled_qty, remaining_qty</code></td><td class="m"><span class="tag n">none</span> always passes</td></tr>
+      <tr><td><code>account.order_failed</code> <span class="tag ok">default</span></td><td class="m">An order is rejected, cancelled or expires</td><td class="m">3</td><td class="m"><code>order_id, reason</code></td><td class="m"><span class="tag n">none</span> always passes</td></tr>
+      <tr><td><code>account.cash_movement</code> <span class="tag ok">default</span></td><td class="m">Money moves in or out</td><td class="m">7</td><td class="m"><code>direction, amount, counterparty_type</code></td><td class="m"><code>min_amount</code></td></tr>
+    </tbody>
+  </table></div>
+  <h4 class="sub">Subscription</h4>
+  <p class="body">Topic: <code>client:activity</code>.</p>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Param</th><th>Type</th><th>Default</th><th>Applies to</th><th>Checks</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>min_amount</code></td><td class="m">number (reporting ccy)</td><td class="m">10,000</td><td class="m"><code>account.cash_movement</code></td><td class="m"><code>amount</code></td><td class="m">Smallest cash movement to receive</td></tr>
+    </tbody>
+  </table></div>
+<pre>update_subscriptions(changes=[
+  {op: "update", detector: "activity", topic: "client:activity",
+   params: {min_amount: 50000},
+   reason: "client moves small amounts weekly; only large ones matter"}
+])</pre>
+  <p class="body"><b>Onboarding derives:</b> every client with defaults.</p>
+  <h4 class="sub">What the agent may do</h4>
+  <div class="table-wrap"><table>
+    <thead><tr><th>Situation</th><th>Typical response</th><th>Outcome</th></tr></thead>
+    <tbody>
+      <tr><td>An approved order is filled</td><td class="m">Confirm to the client in the session that proposed it; update <code>progress/</code></td><td class="m"><span class="tag ok">reply</span></td></tr>
+      <tr><td>Order rejected or expired</td><td class="m">Explain why; propose again if it is still wanted</td><td class="m"><span class="tag ok">report</span></td></tr>
+      <tr><td>Partial fill</td><td class="m">Set a follow-up at the close to report the final position</td><td class="m"><span class="tag a">timer</span></td></tr>
+      <tr><td>Large withdrawal</td><td class="m">Finding; check it against the goals, and ask gently if plans have changed</td><td class="m"><span class="tag n">finding</span></td></tr>
+    </tbody>
+  </table></div>
+  <p class="note">This replaces the overall design's <code>/v1/webhooks/portfolio</code> endpoint: the portfolio system's events become D6 signals. Fraud detection is not this detector's job. <b>Later:</b> <code>account.instruction</code>, <code>account.unusual</code>.</p>
+</section>
+
+<section id="feed-health">
+  <h2><span class="k">F</span>Feed health</h2>
+  <p class="section-intro">A wrong signal is worse than no signal. Feed health watches every detector input. Agents don't subscribe to it.</p>
+  <div class="grid two">
+    <div class="card"><h3>What it checks</h3><ul>
+      <li>A heartbeat per input against its expected cadence; the age of the last update</li>
+      <li>Gaps in sequences, and missing closes</li>
+      <li>Bad ticks: a jump over 10σ on tiny volume that reverses within seconds</li>
+      <li>A cross-check of the main indices against a second source</li>
+    </ul></div>
+    <div class="card"><h3>What it does</h3><ul>
+      <li>Pauses detection for the affected instruments</li>
+      <li>After recovery, rebuilds the baseline and emits only the current state, not a backlog</li>
+      <li>Sets "market data delayed since 14:05" in the run header, and alerts ops</li>
+      <li>The permission gate's price-drift check before execution stays as a final guard</li>
+    </ul></div>
+  </div>
+</section>
+
+
+<div class="part" id="part-runtime">
+  <div class="pk">Part 4</div>
+  <h2 class="ph">Runtime</h2>
+  <p>The always-on runtime from the overall design, trimmed to the MVP. Each section follows the architecture's three columns.</p>
+</div>
+
+<section id="starts">
+  <h2><span class="k">Column 1</span>What starts a run</h2>
+  <h3>Ingest handler</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Endpoint</th><th>Caller</th><th>Event type</th><th>session_id</th></tr></thead>
+    <tbody>
+      <tr><td><code>POST /v1/clients/{id}/messages</code></td><td class="m">Client app</td><td>client_message</td><td class="m">The client's conversation session</td></tr>
+      <tr><td><code>POST /v1/deferrals/{id}/decision</code></td><td class="m">Approval card</td><td>approval</td><td class="m">From the deferral row (the paused session)</td></tr>
+      <tr><td><code>POST /v1/events</code></td><td class="m">Subscription filter, client detectors</td><td>signal</td><td class="m">None, so a new session starts; D6 order events linked to a deferral resume that session</td></tr>
+      <tr><td><i>internal insert</i></td><td class="m">Scheduler</td><td>timer_fired</td><td class="m">Copied from the timer (follow-ups only)</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <ol class="steps">
+    <li>Authenticate the source (service credentials for detectors, the user's session token for the app, a signed one-time token for approval cards).</li>
+    <li>Validate the schema and size, and check that the client exists. <b>No LLM call, and no prompt-injection screening</b> here: that happens inside the run.</li>
+    <li>Insert with <code>ON CONFLICT (client_id, source, source_event_id) DO NOTHING</code>, so retried events are dropped.</li>
+    <li><code>NOTIFY inbox_wake, '&lt;client_id&gt;'</code> in the same transaction, then return <code>202</code>. Target p99 under 200 ms.</li>
+  </ol>
+  <h3>Event inbox</h3>
+<pre>CREATE TABLE inbox_events (
+  id               uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id        uuid        NOT NULL,
+  source           text        NOT NULL,   <span class="c">-- 'app' | 'detector' | 'timer' | 'approval'</span>
+  source_event_id  text        NOT NULL,   <span class="c">-- signal_id for signals</span>
+  type             text        NOT NULL,   <span class="c">-- 'client_message' | 'signal' | 'timer_fired' | 'approval' | 'onboarding'</span>
+  session_id       uuid,                   <span class="c">-- NULL means start a new session</span>
+  priority         smallint    NOT NULL DEFAULT 5,  <span class="c">-- 0 = urgent; signals use severity_hint</span>
+  payload          jsonb       NOT NULL,
+  available_at     timestamptz NOT NULL DEFAULT now(),  <span class="c">-- batching for lower-severity signals</span>
+  status           text        NOT NULL DEFAULT 'pending',  <span class="c">-- pending | claimed | done | dead</span>
+  attempts         int         NOT NULL DEFAULT 0,
+  claimed_by       text,
+  claimed_at       timestamptz,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  done_at          timestamptz,
+  UNIQUE (client_id, source, source_event_id)
+);
+CREATE INDEX ON inbox_events (client_id, status, priority, available_at);</pre>
+  <p class="body"><b>Status flow:</b> <code>pending → claimed → done</code>. If the worker's lease expires, claimed events go back to <code>pending</code> with <code>attempts + 1</code>. After 5 attempts an event becomes <code>dead</code> and alerts on-call.</p>
+  <h3>Timers and scheduler</h3>
+<pre>CREATE TABLE timers (
+  id          uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id   uuid        NOT NULL,
+  kind        text        NOT NULL,   <span class="c">-- 'follow_up' | 'schedule'</span>
+  purpose     text        NOT NULL,   <span class="c">-- 'confirm fill of order 8812', 'weekly digest'</span>
+  due_at      timestamptz NOT NULL,
+  rrule       text,                   <span class="c">-- schedules only, e.g. 'FREQ=WEEKLY;BYDAY=MO;BYHOUR=8'</span>
+  timezone    text        NOT NULL,
+  session_id  uuid,                   <span class="c">-- follow-ups resume the session that set them</span>
+  status      text        NOT NULL DEFAULT 'active',  <span class="c">-- active | done | cancelled</span>
+  created_by  text        NOT NULL    <span class="c">-- 'agent' | 'client' | 'onboarding'</span>
+);
+CREATE INDEX ON timers (status, due_at);</pre>
+  <p class="body">A single-leader scheduler polls every 30 seconds, turns due timers into <code>timer_fired</code> inbox events (at most once per firing), and moves schedules to their next occurrence. The agent manages its own follow-ups with <code>set_follow_up</code>, <code>cancel_follow_up</code> and <code>list_timers</code>.</p>
+</section>
+
+<section id="works">
+  <h2><span class="k">Column 2</span>What a run works with</h2>
+  <h3>Worker</h3>
+  <p class="body">Workers form one shared pool. A worker that hears <code>inbox_wake</code> takes the client's lease with <code>pg_try_advisory_lock(hash(client_id))</code>, renewed every 30 seconds, so <b>each inbox has at most one active worker</b>.</p>
+<pre>while lease.held(client_id):
+    events = claim_pending(client_id, limit=50)        <span class="c"># pending → claimed, where available_at &lt;= now()</span>
+    if not events: break
+    for session_id, group in group_by(events, "session_id"):
+        session = (sessions.resume(session_id)          <span class="c"># compact first if over threshold</span>
+                   if session_id and sessions.resumable(session_id)
+                   else sessions.create(client_id, kind_for(group)))
+        outcome = run(session, group)                    <span class="c"># context → agent loop → write-back</span>
+        commit(outcome)                                  <span class="c"># transcript, memory, timers, outbox in one step</span>
+        check_acknowledged(group, outcome)               <span class="c"># must_acknowledge signals</span>
+        mark_done(group)
+lease.release(client_id)</pre>
+  <div class="grid two">
+    <div class="card"><span class="num">Events that arrive mid-run</span><p>They wait for the next run, which starts straight away. One exception: a <b>client message</b> arriving during a long signal run is added to the current session, so the client doesn't wait.</p></div>
+    <div class="card"><span class="num">Crash safety</span><p>The transcript is saved after every tool round. Every order carries the idempotency key <code>run_id:tool_use_id</code>, which the credential proxy forwards to the broker, so a retried run can't place the same order twice.</p></div>
+  </div>
+  <h3>Sessions</h3>
+<pre>CREATE TABLE sessions (
+  id                   uuid        PRIMARY KEY,
+  client_id            uuid        NOT NULL,
+  kind                 text        NOT NULL,   <span class="c">-- 'conversation' | 'event' | 'scheduled' | 'onboarding'</span>
+  state                text        NOT NULL,   <span class="c">-- 'active' | 'paused' | 'closed'</span>
+  paused_on_deferral   uuid,
+  transcript_uri       text        NOT NULL,   <span class="c">-- full API content blocks, JSONL</span>
+  context_tokens       int         NOT NULL DEFAULT 0,
+  created_at           timestamptz NOT NULL DEFAULT now(),
+  last_run_at          timestamptz,
+  resumable_until      timestamptz
+);</pre>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Rule</th><th>Value</th></tr></thead>
+    <tbody>
+      <tr><td>One long-lived <b>conversation</b> session per client</td><td class="m">Compacted, never closed</td></tr>
+      <tr><td><b>Event</b> and <b>scheduled</b> sessions</td><td class="m">Closed when the run ends with no pending work</td></tr>
+      <tr><td>Paused session lifetime</td><td class="m">Until the deferral expires (orders: the market close)</td></tr>
+      <tr><td>Compaction</td><td class="m">Server-side, at about 150K tokens; store the <b>full</b> response content blocks</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Context builder</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>#</th><th>Layer</th><th>Content</th><th>Cache</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Tools</td><td class="m">Fixed tool list, sorted, <code>strict: true</code> schemas</td><td><span class="tag ok">cached</span></td></tr>
+      <tr><td>2</td><td>System prompt</td><td class="m">Role, compliance rules, untrusted-content rules, how runs end, the detector catalogue summary</td><td><span class="tag ok">cached</span></td></tr>
+      <tr><td>3</td><td>Client memory</td><td class="m"><code>instructions.md</code>, <code>index.md</code>, the reported view (last 30 days)</td><td><span class="tag ok">cached</span> per client</td></tr>
+      <tr><td>4</td><td>Session history</td><td class="m">Earlier messages and tool calls (resumed sessions)</td><td><span class="tag ok">cached</span> to the last turn</td></tr>
+      <tr><td>5</td><td>Run header</td><td class="m">Time, market status and data delays (from feed health), run type</td><td><span class="tag n">not cached</span></td></tr>
+      <tr><td>6</td><td>New events</td><td class="m">Each event wrapped in <code>&lt;event source=… trust=…&gt;</code></td><td><span class="tag n">not cached</span></td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Agent loop</h3>
+  <p class="body">A manual tool-use loop on the Messages API, so the permission gate can pause a run in the middle of a tool call. Request settings (illustrative; check against the SDK docs when implementing):</p>
+<pre>client.beta.messages.stream(
+    model="claude-opus-5-5",
+    max_tokens=64000,
+    thinking={"type": "adaptive"},
+    output_config={
+        "effort": EFFORT[run_type],                  <span class="c"># signal runs: "high" · chat, digest: "medium" · dreaming: "low"</span>
+        "task_budget": {"type": "tokens", "total": 64000},
+    },
+    betas=["compact-2026-01-12", "task-budgets-2026-03-13", "server-side-fallback-2026-07-01"],
+    fallbacks="default",
+    tools=TOOLS,
+    system=SYSTEM_PROMPT,
+    messages=session.messages + run_header + events,
+).get_final_message()</pre>
+  <ol class="steps">
+    <li>Check <code>stop_reason</code> first: <code>end_turn</code>, <code>tool_use</code>, <code>max_tokens</code> or <code>refusal</code>.</li>
+    <li>Run all tool calls in parallel through the tool router and return every <code>tool_result</code> in one message; failures come back with <code>is_error: true</code>.</li>
+    <li>Stop at the end of the turn, after 40 model turns or 10 minutes, or when a deferred call pauses the run. At a limit, the agent writes <code>progress/</code> and sets a follow-up.</li>
+  </ol>
+  <h3>MVP tools</h3>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Tool</th><th>Tier</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>get_portfolio</code>, <code>get_positions</code>, <code>get_transactions</code></td><td><span class="tag ok">auto</span></td><td class="m">Read-only, scoped to the run's client</td></tr>
+      <tr><td><code>get_quotes</code>, <code>search_news</code>, <code>get_research</code></td><td><span class="tag ok">auto</span></td><td class="m">Results wrapped as untrusted content; <code>get_research</code> also reads the house view</td></tr>
+      <tr><td><code>memory</code></td><td><span class="tag ok">auto</span></td><td class="m">Paths outside <code>clients/{client_id}/</code> are rejected</td></tr>
+      <tr><td><code>set_follow_up</code>, <code>cancel_follow_up</code>, <code>list_timers</code></td><td><span class="tag ok">auto</span></td><td class="m">At most 20 active follow-ups per client</td></tr>
+      <tr><td><code>update_subscriptions</code>, <code>list_subscriptions</code>, <code>describe_detector</code></td><td><span class="tag ok">auto</span> / <span class="tag a">classifier</span></td><td class="m">Classifier for rows the client set; mandatory rows can't be removed</td></tr>
+      <tr><td><code>acknowledge</code></td><td><span class="tag ok">auto</span></td><td class="m">For <code>must_acknowledge</code> signals</td></tr>
+      <tr><td><code>send_message</code>(kind, priority, topic_key, body)</td><td><span class="tag ok">auto</span></td><td class="m">Writes to the outbox; the dispatcher decides delivery</td></tr>
+      <tr><td><code>draft_order</code></td><td><span class="tag a">classifier</span></td><td class="m">Prepares a ticket; executes nothing</td></tr>
+      <tr><td><code>place_order</code>, <code>cancel_order</code></td><td><span class="tag al">defer → client</span></td><td class="m">To the advisor instead when over the size limit (open question)</td></tr>
+      <tr><td><i>rebalance, move_cash_internal, recommend_product, submit_election</i></td><td><span class="tag n">later</span></td><td class="m">Not in the MVP tool list</td></tr>
+      <tr><td><i>external withdrawal, change bank or contact details</i></td><td><span class="tag n">not exposed</span></td><td class="m">These tools don't exist for the agent</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Memory</h3>
+<pre>s3://wealth-agent-memory/clients/{client_id}/
+  instructions.md     <span class="c"># every run · standing instructions ("alert only on moves over 3%")</span>
+  index.md            <span class="c"># every run · one line per file below</span>
+  notes/              <span class="c"># when needed · profile.md, goals.md, risk.md, preferences.md, corrections.md</span>
+  progress/           <span class="c"># when needed · one file per open task, e.g. trim-nvda-2026-11.md</span>
+<span class="c"># the "reported" view is rendered from outbox_messages (status = sent), not a file</span></pre>
+  <div class="grid">
+    <div class="card"><span class="num">Reported view</span><p>What the client has been told comes from the outbox's sent rows, so it can't drift from what was actually delivered.</p></div>
+    <div class="card"><span class="num">Pointers, not copies</span><p>Memory keeps order IDs, article links and position IDs. Prices and holdings are always read fresh.</p></div>
+    <div class="card"><span class="num">Dreaming, nightly</span><p>For each client with activity that day, a low-effort Batches API job merges, corrects and prunes notes. Bucket versioning keeps every earlier version.</p></div>
+  </div>
+  <h3>Permissions</h3>
+  <p class="body">Every tool call goes through four stages. A blocked call goes back to the model as an error <code>tool_result</code> with the reason.</p>
+  <div class="grid">
+    <div class="card"><span class="num">1 · Policy engine</span><p>The tool's tier, then argument rules: order size against limits, account ownership. It can only make a call stricter.</p></div>
+    <div class="card"><span class="num">2 · Risk classifier</span><p>Screens classifier-tier calls and <b>any call whose arguments came from untrusted text</b>, such as a ticker first seen in a news item.</p></div>
+    <div class="card"><span class="num">3 · Deferral manager</span><p>Writes a <code>deferrals</code> row, puts an approval card in the outbox, sets an expiry timer and pauses the session mid-call.</p></div>
+    <div class="card"><span class="num">4 · Credential proxy</span><p>Adds the brokerage token from the vault and <b>rejects any order without an approved, unexpired deferral ID</b>.</p></div>
+  </div>
+<pre>CREATE TABLE deferrals (
+  id            uuid        PRIMARY KEY,
+  client_id     uuid        NOT NULL,
+  session_id    uuid        NOT NULL,
+  tool_use_id   text        NOT NULL,
+  tool_name     text        NOT NULL,   <span class="c">-- 'place_order' | 'cancel_order'</span>
+  args          jsonb       NOT NULL,   <span class="c">-- exactly what the client sees and approves</span>
+  approver      text        NOT NULL,   <span class="c">-- 'client' | 'advisor'</span>
+  status        text        NOT NULL DEFAULT 'pending',  <span class="c">-- pending | approved | rejected | expired | executed</span>
+  expires_at    timestamptz NOT NULL,   <span class="c">-- end of the trading day</span>
+  decided_at    timestamptz,
+  decided_by    text
+);</pre>
+  <p class="body">On resume after an approval, the gate re-checks that the approval is valid and unexpired, the price hasn't moved beyond the allowed drift, and the arguments are byte-identical to what was approved. A rejection or expiry goes back to the model as the <code>tool_result</code>.</p>
+</section>
+
+<section id="leaves">
+  <h2><span class="k">Column 3</span>What leaves a run</h2>
+  <h3>Outbox</h3>
+<pre>CREATE TABLE outbox_messages (
+  id             uuid        PRIMARY KEY DEFAULT gen_random_uuid(),
+  client_id      uuid        NOT NULL,
+  session_id     uuid        NOT NULL,
+  kind           text        NOT NULL,   <span class="c">-- alert | report | finding | reply | approval_card | digest</span>
+  priority       smallint    NOT NULL,   <span class="c">-- 0 urgent … 9 digest-only</span>
+  topic_key      text        NOT NULL,   <span class="c">-- 'NVDA:guidance-cut:2026-11-14', suppresses repeats</span>
+  body_md        text        NOT NULL,
+  refs           jsonb,                  <span class="c">-- holdings, signal_ids, deferral_id</span>
+  status         text        NOT NULL DEFAULT 'queued',  <span class="c">-- queued | held | sent | suppressed | failed</span>
+  deliver_after  timestamptz NOT NULL DEFAULT now(),
+  channel        text,
+  created_at     timestamptz NOT NULL DEFAULT now(),
+  sent_at        timestamptz
+);</pre>
+  <ol class="steps">
+    <li><b>Compliance check:</b> required disclaimers, no promises about returns. A failure goes to review and never out.</li>
+    <li><b>Dedupe:</b> the same <code>topic_key</code> sent in the last 7 days is suppressed unless the new priority is higher.</li>
+    <li><b>Pacing:</b> the delivery rules below, then a channel from the client's preferences.</li>
+    <li><b>Send and record:</b> deliver, set <code>status = sent</code>, write the audit log.</li>
+  </ol>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Kind</th><th>Delivery rule</th><th>Channel</th></tr></thead>
+    <tbody>
+      <tr><td><span class="tag al">alert</span></td><td class="m">Right away, even in quiet hours; at most 3 per day</td><td class="m">Push</td></tr>
+      <tr><td><span class="tag al">approval_card</span></td><td class="m">Right away; signed one-time token and expiry time</td><td class="m">Push + in-app card</td></tr>
+      <tr><td><span class="tag a">reply</span></td><td class="m">Right away</td><td class="m">In-app chat</td></tr>
+      <tr><td><span class="tag ok">report</span></td><td class="m">Active hours; reports on the same holding within 2 hours are merged</td><td class="m">In-app + email</td></tr>
+      <tr><td><span class="tag n">finding</span></td><td class="m">Held for the weekly digest</td><td class="m">Digest</td></tr>
+    </tbody>
+  </table>
+  </div>
+  <h3>Audit log</h3>
+  <p class="body">Append-only, keyed by <code>client_id</code> and <code>run_id</code>: every inbox event, run (model, effort, tokens, cost, outcome), tool call with the gate's decision, deferral and decision, outbox message with its compliance result, and memory version. Exported nightly to write-once storage.</p>
+</section>
+
+<section id="sequence">
+  <h2>End to end: an order that needs approval</h2>
+  <p class="section-intro">The hardest path in the MVP. It uses every primitive, and one session spans two runs.</p>
+  <figure>
+    <div class="scroll">
+    <svg viewBox="0 0 1180 730" role="img" aria-label="Sequence diagram of a deferred trade. Run 1: a guidance-cut signal is written to the inbox, the worker claims it and starts session S2, the agent calls place_order, the permission gate defers it to the client, an approval card goes to the outbox and the client, and S2 is saved mid-call and paused. Run 2: the client approves, the handler writes an approval event with session S2, the worker resumes S2, the gate re-checks the approval and sends the order through the credential proxy, the result returns to the agent, which sends a confirmation and sets a follow-up.">
+      <defs>
+        <marker id="s" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hd"/></marker>
+        <marker id="sp" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" class="hdp"/></marker>
+      </defs>
+      <!-- headers -->
+      <g>
+        <rect x="16" y="16" width="128" height="48" rx="8" class="b"/><text x="80" y="37" class="t" text-anchor="middle">Client</text><text x="80" y="55" class="tx" text-anchor="middle">app</text>
+        <rect x="156" y="16" width="128" height="48" rx="8" class="b"/><text x="220" y="37" class="t" text-anchor="middle">Ingest</text><text x="220" y="55" class="tx" text-anchor="middle">handler</text>
+        <rect x="296" y="16" width="128" height="48" rx="8" class="bh"/><text x="360" y="37" class="t tpc" text-anchor="middle">Event inbox</text><text x="360" y="55" class="tx" text-anchor="middle">table</text>
+        <rect x="436" y="16" width="128" height="48" rx="8" class="b"/><text x="500" y="37" class="t" text-anchor="middle">Worker</text><text x="500" y="55" class="tx" text-anchor="middle">lease holder</text>
+        <rect x="576" y="16" width="128" height="48" rx="8" class="ba"/><text x="640" y="37" class="t ta" text-anchor="middle">Agent loop</text><text x="640" y="55" class="tx" text-anchor="middle">Claude API</text>
+        <rect x="716" y="16" width="128" height="48" rx="8" class="bh"/><text x="780" y="37" class="t tpc" text-anchor="middle">Permissions</text><text x="780" y="55" class="tx" text-anchor="middle">gate</text>
+        <rect x="856" y="16" width="128" height="48" rx="8" class="bh"/><text x="920" y="37" class="t tpc" text-anchor="middle">Outbox</text><text x="920" y="55" class="tx" text-anchor="middle">+ dispatcher</text>
+        <rect x="1010" y="16" width="160" height="48" rx="8" class="b"/><text x="1090" y="37" class="t" text-anchor="middle">Credential proxy</text><text x="1090" y="55" class="tx" text-anchor="middle">→ broker</text>
+      </g>
+      <line x1="80" y1="64" x2="80" y2="716" class="life"/>
+      <line x1="220" y1="64" x2="220" y2="716" class="life"/>
+      <line x1="360" y1="64" x2="360" y2="716" class="life"/>
+      <line x1="500" y1="64" x2="500" y2="716" class="life"/>
+      <line x1="640" y1="64" x2="640" y2="716" class="life"/>
+      <line x1="780" y1="64" x2="780" y2="716" class="life"/>
+      <line x1="920" y1="64" x2="920" y2="716" class="life"/>
+      <line x1="1090" y1="64" x2="1090" y2="716" class="life"/>
+
+      <text x="1164" y="92" class="tl" text-anchor="end">RUN 1 · NEW SESSION S2</text>
+      <path d="M220,110 L358,110" class="ar" marker-end="url(#s)"/><text x="290" y="104" class="tx" text-anchor="middle">signal: guidance cut</text>
+      <path d="M360,144 L498,144" class="arp" marker-end="url(#sp)"/><text x="430" y="138" class="tx" text-anchor="middle">claim · no session_id</text>
+      <path d="M500,178 L638,178" class="ar" marker-end="url(#s)"/><text x="570" y="172" class="tx" text-anchor="middle">run(new S2, events)</text>
+      <path d="M640,212 L778,212" class="ar" marker-end="url(#s)"/><text x="710" y="206" class="tx" text-anchor="middle">place_order(sell 30% NVDA)</text>
+      <rect x="704" y="226" width="152" height="26" rx="6" class="bn"/><text x="780" y="243" class="tx" text-anchor="middle">policy → defer to client</text>
+      <path d="M780,280 L918,280" class="arp" marker-end="url(#sp)"/><text x="850" y="274" class="tx" text-anchor="middle">approval card · D7</text>
+      <rect x="436" y="296" width="268" height="26" rx="6" class="bn"/><text x="570" y="313" class="tx" text-anchor="middle">save S2 mid-call · state = paused · run ends</text>
+      <path d="M920,348 L82,348" class="arp" marker-end="url(#sp)"/><text x="500" y="342" class="tx" text-anchor="middle">push: "NVDA cut its outlook. Sell 30% to cut concentration? Approve / Reject"</text>
+
+      <line x1="16" y1="378" x2="1164" y2="378" class="ard"/>
+      <text x="590" y="396" class="ts" text-anchor="middle">… minutes pass · the worker handles other events in other sessions …</text>
+
+      <text x="1164" y="424" class="tl" text-anchor="end">RUN 2 · RESUME S2</text>
+      <path d="M80,442 L218,442" class="ar" marker-end="url(#s)"/><text x="150" y="436" class="tx" text-anchor="middle">approve D7 (token)</text>
+      <path d="M220,476 L358,476" class="ar" marker-end="url(#s)"/><text x="290" y="470" class="tx" text-anchor="middle">approval · S2</text>
+      <path d="M360,510 L498,510" class="arp" marker-end="url(#sp)"/><text x="430" y="504" class="tx" text-anchor="middle">claim · resume S2</text>
+      <path d="M500,544 L778,544" class="ar" marker-end="url(#s)"/><text x="640" y="538" class="tx" text-anchor="middle">re-check D7: approved, not expired, price drift OK</text>
+      <path d="M780,578 L1088,578" class="ar" marker-end="url(#s)"/><text x="935" y="572" class="tx" text-anchor="middle">POST /orders · idempotency key · D7</text>
+      <path d="M1090,606 L782,606" class="ard" marker-end="url(#s)"/><text x="935" y="600" class="tx" text-anchor="middle">accepted · order 8812</text>
+      <path d="M780,636 L642,636" class="ar" marker-end="url(#s)"/><text x="710" y="630" class="tx" text-anchor="middle">tool_result</text>
+      <path d="M640,666 L918,666" class="arp" marker-end="url(#sp)"/><text x="780" y="660" class="tx" text-anchor="middle">send confirmation · set follow-up 16:00</text>
+      <path d="M920,700 L82,700" class="arp" marker-end="url(#sp)"/><text x="500" y="694" class="tx" text-anchor="middle">push: "Order placed. I'll confirm the fill at market close."</text>
+    </svg>
+    </div>
+    <figcaption>The session joins the two runs: the deferral row and the approval event both carry <code>S2</code>, so run 2 resumes at the pending tool call. At 16:00 the follow-up timer wakes the agent; the fill itself arrives as a D6 <code>account.order_filled</code> signal for the same session.</figcaption>
+  </figure>
+</section>
+
+
+<div class="part" id="part-ops">
+  <div class="pk">Part 5</div>
+  <h2 class="ph">Operations and next</h2>
+  <p>What happens when things fail, how to watch cost and quality, and what comes after the MVP.</p>
+</div>
+
+<section id="failures">
+  <h2>Failure handling</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Failure</th><th>Detected by</th><th>Recovery</th></tr></thead>
+    <tbody>
+      <tr><td>Worker crashes mid-run</td><td class="m">Lease heartbeat stops</td><td class="m">Events go back to <code>pending</code>; another worker resumes from the last saved tool round. Idempotency keys prevent duplicate orders.</td></tr>
+      <tr><td>Duplicate signal or event</td><td class="m">Unique key on the inbox</td><td class="m">Dropped at insert</td></tr>
+      <tr><td>Stale or bad market data</td><td class="m">Feed health</td><td class="m">Detection paused; run header shows the delay; no catch-up flood after recovery</td></tr>
+      <tr><td>Claude API 429 or 5xx</td><td class="m">SDK typed errors</td><td class="m">Retry with backoff, then requeue. A global limiter serves client messages first, then alerts, then routine work.</td></tr>
+      <tr><td>Model refusal</td><td class="m"><code>stop_reason = refusal</code></td><td class="m">Server-side fallback; if that also refuses, end the run, notify ops, send nothing</td></tr>
+      <tr><td>Run over budget or time</td><td class="m">Task budget, turn cap, wall clock</td><td class="m">Agent writes <code>progress/</code> and sets a follow-up</td></tr>
+      <tr><td>Approval never answered</td><td class="m">Deferral expiry timer</td><td class="m"><code>tool_result</code>: expired; the agent re-proposes or just informs</td></tr>
+      <tr><td>Price moved after approval</td><td class="m">Gate re-check, proxy check</td><td class="m">Execution refused; the agent proposes again with fresh numbers</td></tr>
+      <tr><td>Prompt injection in news</td><td class="m">Untrusted tagging + classifier</td><td class="m">Action blocked and logged; the agent continues without it</td></tr>
+      <tr><td>Election not acknowledged</td><td class="m"><code>must_acknowledge</code> check</td><td class="m">Escalated to the relationship manager after 30 minutes</td></tr>
+      <tr><td>Delivery channel down</td><td class="m">Send error</td><td class="m">Retry, then the backup channel; alerts escalate to the advisor after 15 minutes</td></tr>
+      <tr><td>Poison event</td><td class="m"><code>attempts &gt; 5</code></td><td class="m">Marked <code>dead</code>, ops alerted; other events keep flowing</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="ops">
+  <h2>Scale, cost and observability</h2>
+  <div class="grid">
+    <div class="card"><span class="num">Parallelism</span><ul><li>Each client's events run one at a time; clients run in parallel</li><li>The worker pool scales on inbox lag</li><li>A global Claude API limiter with three priority classes</li><li>A6 fan-out ordered by exposure, so the most exposed clients go first</li></ul></div>
+    <div class="card"><span class="num">Cost controls</span><ul><li>Client params drop most signals before any run</li><li>Batching: severity 4–9 signals wait up to 15 minutes and share a run</li><li>Prompt caching on tools, system prompt and memory</li><li>Effort set per run type; dreaming through Batches</li><li>A daily token budget per client, with ops alerts</li></ul></div>
+    <div class="card"><span class="num">Metrics</span><ul><li>Signals per detector, and the share dropped by the filter</li><li>Inbox lag p50/p99, dead events</li><li>Run duration, tokens, cost, cache hit rate</li><li>Messages per client per week, by kind</li><li>Approval rate and time to decide</li></ul></div>
+    <div class="card"><span class="num">Evals</span><ul><li><b>Volume:</b> replay a month of signals; too much, or missed?</li><li><b>Relevance:</b> is the exposure reasoning right per holding?</li><li><b>Breaking event:</b> replay a past sell-off</li><li><b>Injection red team</b> with crafted news</li><li><b>Approval safety:</b> no order without an approved deferral</li></ul></div>
+  </div>
+  <p class="body"><b>Build vs. managed:</b> the MVP hosts the agent loop and session store itself. Anthropic's Managed Agents (beta) could replace them; a short spike before building column 2 would settle it. Detectors, the inbox, the outbox, approval cards, compliance and the audit log stay ours either way.</p>
+</section>
+
+<section id="phase2">
+  <h2>After the MVP</h2>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Next</th><th>What it adds</th><th>When</th></tr></thead>
+    <tbody>
+      <tr><td><b>B2 Filings</b> (<code>filing.red_flag</code> first)</td><td class="m">Restatements, auditor resignations, going-concern warnings</td><td class="m">First phase-2 item</td></tr>
+      <tr><td><b>E1 House view</b></td><td class="m">Signals when the CIO's stance changes</td><td class="m">When the house view is available in structured form</td></tr>
+      <tr><td><b>D4 Cash</b></td><td class="m">Idle cash from dividends and sales</td><td class="m">Phase 2</td></tr>
+      <tr><td><b>B4 Analysts</b>, <b>C2 Macro</b></td><td class="m">Context for other signals</td><td class="m">Phase 2</td></tr>
+      <tr><td><b>D2 Risk &amp; suitability</b></td><td class="m">Ongoing suitability checks</td><td class="m">When the agent recommends products</td></tr>
+      <tr><td><b>D3 Margin</b>, <b>A3 FX</b>, <b>A7 Funds</b>, <b>C4 ESG</b></td><td class="m">See <a href="#assumptions">assumptions</a></td><td class="m">As soon as the matching portfolios are in scope</td></tr>
+      <tr><td><b>D8 Profile</b>, <b>D9 Engagement</b>, <b>C3 Policy</b></td><td class="m">Reviews and goals, engagement-based tuning, sanctions and tax</td><td class="m">When CRM, app events and compliance are connected</td></tr>
+      <tr><td><b>A2, A4, A5, D5, D7, E2</b></td><td class="m">Bonds, commodities, structured products, tax, product shelf</td><td class="m">Full multi-asset portfolios</td></tr>
+      <tr><td>Kinds deferred inside MVP detectors</td><td class="m"><code>price_level.52w</code>, <code>market.vol_spike</code>, <code>market.regime_change</code>, <code>earnings.revision_trend</code>, <code>ca.completed</code>, <code>news.story_update</code>, <code>news.volume_spike</code></td><td class="m">Phase 2</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section id="open">
+  <h2>Open questions for the MVP</h2>
+  <div class="card">
+    <ul class="qs">
+      <li><b>Markets:</b> Hong Kong and US listings only at launch?</li>
+      <li><b>Order limits:</b> above what size does an approval go to the advisor instead of the client?</li>
+      <li><b>Alert budget:</b> are 3 alerts a day and the proposed quiet hours right? What is the target number of messages per client per week?</li>
+      <li><b>Default thresholds:</b> replay 12 months of Hong Kong and US data through the detectors to tune them before the pilot.</li>
+      <li><b>News licensing:</b> which newswires, and can headlines and summaries go into model context and client messages?</li>
+      <li><b>Elections:</b> confirm that clients instruct elections through the existing channel in the MVP.</li>
+      <li><b>Order deferrals:</b> should a pending order approval always expire at the market close?</li>
+      <li><b>Retention:</b> how long are transcripts, memory versions and the audit log kept, and what can a client see or erase?</li>
+      <li><b>Build or managed:</b> run the Managed Agents spike before building the worker and session store.</li>
+      <li><b>Where client detectors run:</b> in our service, or inside the portfolio system?</li>
+    </ul>
+  </div>
+</section>
+</main>
+</body>
+</html>

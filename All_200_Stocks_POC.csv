@@ -1,0 +1,201 @@
+Ticker,Company_Name,Market,Currency,GICS_Sector
+AAPL,Apple,US,USD,Information Technology
+NVDA,NVIDIA,US,USD,Information Technology
+MSFT,Microsoft,US,USD,Information Technology
+AVGO,Broadcom,US,USD,Information Technology
+ORCL,Oracle,US,USD,Information Technology
+CRM,Salesforce,US,USD,Information Technology
+AMD,Advanced Micro Devices,US,USD,Information Technology
+ADBE,Adobe,US,USD,Information Technology
+CSCO,Cisco Systems,US,USD,Information Technology
+ACN,Accenture,US,USD,Information Technology
+NOW,ServiceNow,US,USD,Information Technology
+IBM,IBM,US,USD,Information Technology
+QCOM,Qualcomm,US,USD,Information Technology
+TXN,Texas Instruments,US,USD,Information Technology
+INTU,Intuit,US,USD,Information Technology
+AMAT,Applied Materials,US,USD,Information Technology
+MU,Micron Technology,US,USD,Information Technology
+PLTR,Palantir Technologies,US,USD,Information Technology
+PANW,Palo Alto Networks,US,USD,Information Technology
+ANET,Arista Networks,US,USD,Information Technology
+LRCX,Lam Research,US,USD,Information Technology
+INTC,Intel,US,USD,Information Technology
+BRK-B,Berkshire Hathaway,US,USD,Financials
+JPM,JPMorgan Chase,US,USD,Financials
+V,Visa,US,USD,Financials
+MA,Mastercard,US,USD,Financials
+BAC,Bank of America,US,USD,Financials
+WFC,Wells Fargo,US,USD,Financials
+GS,Goldman Sachs,US,USD,Financials
+MS,Morgan Stanley,US,USD,Financials
+BLK,BlackRock,US,USD,Financials
+AXP,American Express,US,USD,Financials
+SPGI,S&P Global,US,USD,Financials
+C,Citigroup,US,USD,Financials
+SCHW,Charles Schwab,US,USD,Financials
+PGR,Progressive,US,USD,Financials
+LLY,Eli Lilly,US,USD,Health Care
+UNH,UnitedHealth Group,US,USD,Health Care
+JNJ,Johnson & Johnson,US,USD,Health Care
+ABBV,AbbVie,US,USD,Health Care
+MRK,Merck & Co.,US,USD,Health Care
+TMO,Thermo Fisher Scientific,US,USD,Health Care
+ABT,Abbott Laboratories,US,USD,Health Care
+ISRG,Intuitive Surgical,US,USD,Health Care
+AMGN,Amgen,US,USD,Health Care
+DHR,Danaher,US,USD,Health Care
+PFE,Pfizer,US,USD,Health Care
+GILD,Gilead Sciences,US,USD,Health Care
+VRTX,Vertex Pharmaceuticals,US,USD,Health Care
+AMZN,Amazon,US,USD,Consumer Discretionary
+TSLA,Tesla,US,USD,Consumer Discretionary
+HD,Home Depot,US,USD,Consumer Discretionary
+MCD,McDonald's,US,USD,Consumer Discretionary
+BKNG,Booking Holdings,US,USD,Consumer Discretionary
+LOW,Lowe's,US,USD,Consumer Discretionary
+SBUX,Starbucks,US,USD,Consumer Discretionary
+NKE,NIKE,US,USD,Consumer Discretionary
+TJX,TJX Companies,US,USD,Consumer Discretionary
+GM,General Motors,US,USD,Consumer Discretionary
+F,Ford Motor,US,USD,Consumer Discretionary
+GE,GE Aerospace,US,USD,Industrials
+CAT,Caterpillar,US,USD,Industrials
+RTX,RTX Corp.,US,USD,Industrials
+UBER,Uber Technologies,US,USD,Industrials
+UNP,Union Pacific,US,USD,Industrials
+HON,Honeywell,US,USD,Industrials
+BA,Boeing,US,USD,Industrials
+LMT,Lockheed Martin,US,USD,Industrials
+DE,Deere & Co.,US,USD,Industrials
+UPS,United Parcel Service,US,USD,Industrials
+GEV,GE Vernova,US,USD,Industrials
+GOOGL,Alphabet,US,USD,Communication Services
+META,Meta Platforms,US,USD,Communication Services
+NFLX,Netflix,US,USD,Communication Services
+DIS,Walt Disney,US,USD,Communication Services
+TMUS,T-Mobile US,US,USD,Communication Services
+VZ,Verizon,US,USD,Communication Services
+T,AT&T,US,USD,Communication Services
+CMCSA,Comcast,US,USD,Communication Services
+TTWO,Take-Two Interactive,US,USD,Communication Services
+WMT,Walmart,US,USD,Consumer Staples
+COST,Costco Wholesale,US,USD,Consumer Staples
+PG,Procter & Gamble,US,USD,Consumer Staples
+KO,Coca-Cola,US,USD,Consumer Staples
+PEP,PepsiCo,US,USD,Consumer Staples
+PM,Philip Morris International,US,USD,Consumer Staples
+MDLZ,Mondelez International,US,USD,Consumer Staples
+XOM,Exxon Mobil,US,USD,Energy
+CVX,Chevron,US,USD,Energy
+COP,ConocoPhillips,US,USD,Energy
+SLB,SLB,US,USD,Energy
+EOG,EOG Resources,US,USD,Energy
+NEE,NextEra Energy,US,USD,Utilities
+SO,Southern Company,US,USD,Utilities
+DUK,Duke Energy,US,USD,Utilities
+PLD,Prologis,US,USD,Real Estate
+AMT,American Tower,US,USD,Real Estate
+EQIX,Equinix,US,USD,Real Estate
+LIN,Linde,US,USD,Materials
+NEM,Newmont,US,USD,Materials
+9988.HK,Alibaba Group,HK,HKD,Consumer Discretionary
+3690.HK,Meituan,HK,HKD,Consumer Discretionary
+1211.HK,BYD Co.,HK,HKD,Consumer Discretionary
+9618.HK,JD.com,HK,HKD,Consumer Discretionary
+9961.HK,Trip.com Group,HK,HKD,Consumer Discretionary
+2020.HK,ANTA Sports,HK,HKD,Consumer Discretionary
+0300.HK,Midea Group,HK,HKD,Consumer Discretionary
+2015.HK,Li Auto,HK,HKD,Consumer Discretionary
+0027.HK,Galaxy Entertainment,HK,HKD,Consumer Discretionary
+9992.HK,Pop Mart International,HK,HKD,Consumer Discretionary
+0005.HK,HSBC Holdings,HK,HKD,Financials
+1299.HK,AIA Group,HK,HKD,Financials
+0939.HK,China Construction Bank,HK,HKD,Financials
+0388.HK,HKEX,HK,HKD,Financials
+1398.HK,ICBC,HK,HKD,Financials
+2318.HK,Ping An Insurance,HK,HKD,Financials
+3988.HK,Bank of China,HK,HKD,Financials
+3968.HK,China Merchants Bank,HK,HKD,Financials
+2388.HK,BOC Hong Kong,HK,HKD,Financials
+0700.HK,Tencent Holdings,HK,HKD,Communication Services
+0941.HK,China Mobile,HK,HKD,Communication Services
+9999.HK,NetEase,HK,HKD,Communication Services
+1024.HK,Kuaishou Technology,HK,HKD,Communication Services
+9888.HK,Baidu,HK,HKD,Communication Services
+0728.HK,China Telecom,HK,HKD,Communication Services
+1810.HK,Xiaomi Corp.,HK,HKD,Information Technology
+0981.HK,SMIC,HK,HKD,Information Technology
+0992.HK,Lenovo Group,HK,HKD,Information Technology
+2382.HK,Sunny Optical,HK,HKD,Information Technology
+1347.HK,Hua Hong Semiconductor,HK,HKD,Information Technology
+6160.HK,BeOne Medicines,HK,HKD,Health Care
+2269.HK,WuXi Biologics,HK,HKD,Health Care
+1801.HK,Innovent Biologics,HK,HKD,Health Care
+1093.HK,CSPC Pharmaceutical,HK,HKD,Health Care
+3750.HK,CATL,HK,HKD,Industrials
+0669.HK,Techtronic Industries,HK,HKD,Industrials
+0001.HK,CK Hutchison,HK,HKD,Industrials
+0066.HK,MTR Corp.,HK,HKD,Industrials
+9633.HK,Nongfu Spring,HK,HKD,Consumer Staples
+0291.HK,China Resources Beer,HK,HKD,Consumer Staples
+2319.HK,China Mengniu Dairy,HK,HKD,Consumer Staples
+0883.HK,CNOOC,HK,HKD,Energy
+0857.HK,PetroChina,HK,HKD,Energy
+1088.HK,China Shenhua Energy,HK,HKD,Energy
+0016.HK,Sun Hung Kai Properties,HK,HKD,Real Estate
+1109.HK,China Resources Land,HK,HKD,Real Estate
+0823.HK,Link REIT,HK,HKD,Real Estate
+0002.HK,CLP Holdings,HK,HKD,Utilities
+1038.HK,CK Infrastructure,HK,HKD,Utilities
+2899.HK,Zijin Mining Group,HK,HKD,Materials
+HSBA.L,HSBC Holdings,UK,GBP,Financials
+LLOY.L,Lloyds Banking Group,UK,GBP,Financials
+BARC.L,Barclays,UK,GBP,Financials
+NWG.L,NatWest Group,UK,GBP,Financials
+LSEG.L,London Stock Exchange Group,UK,GBP,Financials
+STAN.L,Standard Chartered,UK,GBP,Financials
+III.L,3i Group,UK,GBP,Financials
+PRU.L,Prudential,UK,GBP,Financials
+AV.L,Aviva,UK,GBP,Financials
+ULVR.L,Unilever,UK,GBP,Consumer Staples
+BATS.L,British American Tobacco,UK,GBP,Consumer Staples
+DGE.L,Diageo,UK,GBP,Consumer Staples
+CCEP.L,Coca-Cola Europacific Partners,UK,GBP,Consumer Staples
+TSCO.L,Tesco,UK,GBP,Consumer Staples
+RKT.L,Reckitt Benckiser,UK,GBP,Consumer Staples
+IMB.L,Imperial Brands,UK,GBP,Consumer Staples
+ABF.L,Associated British Foods,UK,GBP,Consumer Staples
+RR.L,Rolls-Royce Holdings,UK,GBP,Industrials
+BA.L,BAE Systems,UK,GBP,Industrials
+REL.L,RELX,UK,GBP,Industrials
+EXPN.L,Experian,UK,GBP,Industrials
+BNZL.L,Bunzl,UK,GBP,Industrials
+RTO.L,Rentokil Initial,UK,GBP,Industrials
+SMIN.L,Smiths Group,UK,GBP,Industrials
+WEIR.L,Weir Group,UK,GBP,Industrials
+RIO.L,Rio Tinto,UK,GBP,Materials
+GLEN.L,Glencore,UK,GBP,Materials
+AAL.L,Anglo American,UK,GBP,Materials
+ANTO.L,Antofagasta,UK,GBP,Materials
+FRES.L,Fresnillo,UK,GBP,Materials
+AZN.L,AstraZeneca,UK,GBP,Health Care
+GSK.L,GSK,UK,GBP,Health Care
+HLN.L,Haleon,UK,GBP,Health Care
+SN.L,Smith & Nephew,UK,GBP,Health Care
+CPG.L,Compass Group,UK,GBP,Consumer Discretionary
+IHG.L,InterContinental Hotels Group,UK,GBP,Consumer Discretionary
+NXT.L,Next,UK,GBP,Consumer Discretionary
+IAG.L,International Airlines Group,UK,GBP,Consumer Discretionary
+NG.L,National Grid,UK,GBP,Utilities
+SSE.L,SSE,UK,GBP,Utilities
+UU.L,United Utilities,UK,GBP,Utilities
+SVT.L,Severn Trent,UK,GBP,Utilities
+VOD.L,Vodafone Group,UK,GBP,Communication Services
+BT-A.L,BT Group,UK,GBP,Communication Services
+INF.L,Informa,UK,GBP,Communication Services
+SHEL.L,Shell,UK,GBP,Energy
+BP.L,BP,UK,GBP,Energy
+SGE.L,Sage Group,UK,GBP,Information Technology
+HLMA.L,Halma,UK,GBP,Information Technology
+SGRO.L,SEGRO,UK,GBP,Real Estate
